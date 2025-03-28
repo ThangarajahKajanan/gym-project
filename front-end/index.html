@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en" data-layout="horizontal" data-topbar-color="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PowerGym</title>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.min.css">
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" id="app-style">
+    <link href="/assets/css/app.css" rel="stylesheet" type="text/css">
+    <link href="/assets/icons/css/icons.min.css" rel="stylesheet" type="text/css">
+
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+
+    <script type="module" src="src/main.jsx"></script>
+    <!-- jQuery (Required for DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="public/assets/js/vendor.min.js"></script>
+    <script src="public/assets/js/wow.min.js"></script>
+
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
+    <script>
+      wow = new WOW(
+        {
+          animateClass: 'animated',
+          offset:       0,
+        }
+      );
+      wow.init();
+    </script>
+  </body>
+</html>

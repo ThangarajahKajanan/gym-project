@@ -1,0 +1,29 @@
+.form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  overflow-y: auto;
+}
+
+
+.rounded-img {
+  border-radius: 50%; /* This makes the image round */
+  border: 2px solid #ddd; /* Optional: adds a border around the image */
+  width: 50px; /* Ensure consistent width */
+  height: 50px; /* Ensure consistent height */
+  object-fit: cover; /* Ensure image covers the box */
+  display: block; /* Prevent any inline issues */
+  margin: 0 auto; /* Center the image horizontally */
+}
+
+table.dataTable tbody tr td {
+  vertical-align: middle; /* Align the content of the cells vertically to the center */
+}
