@@ -1,11 +1,8 @@
-import React, { useState, useNavigate, useRef } from "react";
+import React, { useState } from "react";
 import Swal from "sweetalert2";
 
 const MembershipForm = ({ handleAddMembershipClick, closeModal }) => {
-  //const navigate = useNavigate(); //
-
   const handleMembershipManagementClick = () => {
-    // setShowForm(prev => !prev);
     closeModal();
   };
 
@@ -30,6 +27,8 @@ const MembershipForm = ({ handleAddMembershipClick, closeModal }) => {
     charge: false,
     cancellationPolicy: false,
     membershipDuration: false,
+    chargeRange: false,
+    periodRange: false,
   });
 
   const handleChange = (e) => {
@@ -39,10 +38,26 @@ const MembershipForm = ({ handleAddMembershipClick, closeModal }) => {
       [name]: type === "checkbox" ? checked : value,
     }));
 
+    // Clear errors when user types
     if (value.trim() !== "" && errors[name]) {
       setErrors((prev) => ({
         ...prev,
         [name]: false,
+      }));
+    }
+
+    // Clear range errors when user adjusts values
+    if (name === "charge" && errors.chargeRange) {
+      setErrors((prev) => ({
+        ...prev,
+        chargeRange: false,
+      }));
+    }
+
+    if (name === "membershipPeriod" && errors.periodRange) {
+      setErrors((prev) => ({
+        ...prev,
+        periodRange: false,
       }));
     }
   };
@@ -55,7 +70,19 @@ const MembershipForm = ({ handleAddMembershipClick, closeModal }) => {
       membershipPeriod: formData.membershipPeriod.trim() === "",
       charge: formData.charge.trim() === "",
       cancellationPolicy: formData.cancellationPolicy.trim() === "",
-    };
+      chargeRange: false,
+      periodRange: false,
+    };    
+
+    // Validate charge range (500 to 25000)
+    if (formData.charge && (parseInt(formData.charge) < 500 || parseInt(formData.charge) > 25000)) {
+      newErrors.chargeRange = true;
+    }
+
+    // Validate membership period (30 to 3600 days)
+    if (formData.membershipPeriod && (parseInt(formData.membershipPeriod) < 30 || parseInt(formData.membershipPeriod) > 3600)) {
+      newErrors.periodRange = true;
+    }
 
     setErrors(newErrors);
     return !Object.values(newErrors).some((error) => error);
@@ -65,31 +92,44 @@ const MembershipForm = ({ handleAddMembershipClick, closeModal }) => {
     e.preventDefault();
 
     if (!validateForm()) {
+      let errorMessage = "Please fill all required fields!";
+      
+      if (errors.chargeRange) {
+        errorMessage = "Charge must be between ₹500 and ₹25,000";
+      } else if (errors.periodRange) {
+        errorMessage = "Membership period must be between 30 and 3600 days";
+      }
+
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: "Please fill all required fields!",
+        text: errorMessage,
         confirmButtonColor: "#3085d6",
       });
       return;
     }
-    // try catch
+
     try {
       console.log("Form submitted:", formData);
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "Membership created successfully!",
+        confirmButtonColor: "#3085d6",
+      });
+      handleClear();
     } catch (error) {
       console.log("the error in " + error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "An error occurred while creating membership",
+        confirmButtonColor: "#3085d6",
+      });
     }
-    Swal.fire({
-      icon: "success",
-      title: "Success!",
-      text: "Membership created successfully!",
-      confirmButtonColor: "#3085d6",
-    });
-    handleClear();
   };
 
   const handleClear = () => {
-    // Clear form after successful submission
     setFormData({
       membershipName: "",
       membershipDescription: "",
@@ -109,6 +149,8 @@ const MembershipForm = ({ handleAddMembershipClick, closeModal }) => {
       membershipPeriod: false,
       charge: false,
       cancellationPolicy: false,
+      chargeRange: false,
+      periodRange: false,
     });
   };
 
@@ -240,7 +282,7 @@ const MembershipForm = ({ handleAddMembershipClick, closeModal }) => {
                       className="form-control"
                       id="membershipPeriod"
                       name="membershipPeriod"
-                      placeholder="Duration in days"
+                      placeholder="Duration in days (30-3600)"
                       min="1"
                       value={formData.membershipPeriod}
                       onChange={handleChange}
@@ -248,6 +290,11 @@ const MembershipForm = ({ handleAddMembershipClick, closeModal }) => {
                     {errors.membershipPeriod && (
                       <div className="text-danger small mt-1">
                         Please enter membership period
+                      </div>
+                    )}
+                    {errors.periodRange && (
+                      <div className="text-danger small mt-1">
+                        Membership period must be between 30 and 3600 days
                       </div>
                     )}
                   </div>
@@ -276,14 +323,14 @@ const MembershipForm = ({ handleAddMembershipClick, closeModal }) => {
                   {/* Price */}
                   <div className="mb-3">
                     <label htmlFor="charge" className="form-label">
-                      Charge *
+                      Charge (₹) *
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       className="form-control"
                       id="charge"
                       name="charge"
-                      placeholder="Enter price"
+                      placeholder="Enter price (500-25000)"
                       min="0"
                       value={formData.charge}
                       onChange={handleChange}
@@ -291,6 +338,11 @@ const MembershipForm = ({ handleAddMembershipClick, closeModal }) => {
                     {errors.charge && (
                       <div className="text-danger small mt-1">
                         Please enter charge amount
+                      </div>
+                    )}
+                    {errors.chargeRange && (
+                      <div className="text-danger small mt-1">
+                        Charge must be between ₹500 and ₹25,000
                       </div>
                     )}
                   </div>
@@ -366,13 +418,13 @@ const MembershipForm = ({ handleAddMembershipClick, closeModal }) => {
                   </div>
 
                   {/* Submit Button */}
-                  <button type="submit" className="btn   btn-success me-2">
+                  <button type="submit" className="btn btn-success me-2">
                     Create Membership
                   </button>
                   <button
                     type="reset"
                     onClick={handleClear}
-                    className=" btn btn-soft-blue"
+                    className="btn btn-soft-blue"
                   >
                     Clear
                   </button>
