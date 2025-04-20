@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 function TopBar() {
   const navigate = useNavigate();
+  const userRole = localStorage.getItem("userRole");
 
   const handleLogout = async () => {
     Swal.fire({
@@ -23,8 +24,17 @@ function TopBar() {
             {},
             { withCredentials: true }
           );
-
-          navigate("/login"); // Redirect to login page
+          localStorage.removeItem("userRole");
+          localStorage.removeItem("token");
+          localStorage.removeItem("username");
+                Swal.fire({
+                  icon: "success",
+                  title: "Logout Successful",
+                  text: "You have successfully logged out!",
+                  confirmButtonColor: "#3085d6",
+                }).then(() => {
+                  navigate("/");
+                });
         } catch (error) {
           console.error("Logout failed:", error);
         }
@@ -34,8 +44,6 @@ function TopBar() {
 
   return (
     <div className="navbar-custom" style={{ paddingTop: "10px" }}>
-      {/*  */}
-
       <div className="topbar">
         <div className="topbar-menu d-flex align-items-center gap-1">
           {/* Brand Logo Light */}
@@ -71,15 +79,31 @@ function TopBar() {
               <i className="mdi mdi-chevron-down ms-1"></i>
             </a>
             <div className="dropdown-menu">
-              <a href={void 0} className="dropdown-item">
-                <i className="fe-settings me-1"></i>
-                <span>Settings</span>
-              </a>
-              <div className="dropdown-divider"></div>
-              {/*              <a href={void 0} className="dropdown-item">
-                <i className="fe-calendar me-1"></i>
-                <span>Schedule Management</span>
-              </a> */}
+        
+                <Link to="/welcome" className="dropdown-item">
+                  <i className="fe-airplay me-1"></i> 
+                  <span>Dashboard</span>
+                </Link>
+
+            <div className="dropdown-divider"></div>
+              <Link to="/" className="dropdown-item">
+                <i className="fe-home me-2"></i> 
+                <span>Home</span>
+              </Link>
+            <div className="dropdown-divider"></div>
+
+              {userRole === "ADMIN" && (
+                <Link to="/trainerManagement" className="dropdown-item">
+                  <i className="fe-user me-1"></i>
+                  <span>Trainer</span>
+                </Link>
+              )}
+              {userRole === "ADMIN" && (
+                <Link to="/userManagement" className="dropdown-item">
+                  <i className="fe-user me-1"></i>
+                  <span>User</span>
+                </Link>
+              )}
               <Link to="/manageschedules" className="dropdown-item">
                 <i className="fe-calendar me-1"></i>
                 <span>Schedule</span>
@@ -107,7 +131,7 @@ function TopBar() {
               aria-expanded="false"
             ></a>
           </li>
-
+{/* 
           <li className="dropdown notification-list">
             <a
               className="nav-link dropdown-toggle waves-effect waves-light arrow-none"
@@ -139,15 +163,6 @@ function TopBar() {
                 </div>
               </div>
             </div>
-          </li>
-
-          {/*           <li className="d-none d-sm-inline-block">
-            <div
-              className="nav-link waves-effect waves-light"
-              id="light-dark-mode"
-            >
-              <i className="ri-moon-line font-22"></i>
-            </div>
           </li> */}
 
           <li className="dropdown">
@@ -169,11 +184,6 @@ function TopBar() {
               <div className="dropdown-header noti-title">
                 <h6 className="text-overflow m-0">Welcome</h6>
               </div>
-              <a href="changepassword" className="dropdown-item notify-item">
-                <i className="fe-settings"></i>&nbsp;
-                <span>Change Password</span>
-              </a>
-
               <div className="dropdown-divider"></div>
               <a
                 href={void 0}
@@ -184,16 +194,6 @@ function TopBar() {
                 <span>Logout</span>
               </a>
             </div>
-          </li>
-
-          <li>
-            <a
-              className="nav-link waves-effect waves-light"
-              data-bs-toggle="offcanvas"
-              href="#theme-settings-offcanvas"
-            >
-              <i className="fe-settings font-22"></i>
-            </a>
           </li>
         </ul>
       </div>

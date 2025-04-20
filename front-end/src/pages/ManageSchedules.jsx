@@ -1,148 +1,274 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import DaySchedulesTable from "./DaySchedulesTable";
+import '../CSS/daySchedule.css';
+
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import autoTable from "jspdf-autotable";
 
 const ManageSchedules = () => {
-  const [schedules, setSchedules] = useState([
-    {
-      id: 1,
-      day: "Monday",
-      startTime: "09:00 AM",
-      endTime: "11:00 AM",
-      status: "Not Completed",
-    },
-    {
-      id: 2,
-      day: "Wednesday",
-      startTime: "02:00 PM",
-      endTime: "04:00 PM",
-      status: "Completed",
-    },
-    {
-      id: 3,
-      day: "Friday",
-      startTime: "10:00 AM",
-      endTime: "12:00 PM",
-      status: "Not Completed",
-    },
-    {
-      id: 4,
-      day: "Tuesday",
-      startTime: "01:00 PM",
-      endTime: "03:00 PM",
-      status: "Completed",
-    },
-    {
-      id: 5,
-      day: "Thursday",
-      startTime: "11:00 AM",
-      endTime: "01:00 PM",
-      status: "Not Completed",
-    },
-    {
-      id: 6,
-      day: "Saturday",
-      startTime: "03:00 PM",
-      endTime: "05:00 PM",
-      status: "Completed",
-    },
-  ]);
-
-  const [filter, setFilter] = useState("All");
+  const [schedules, setSchedules] = useState([]);
+  const [filter, setFilter] = useState("all"); // "all", "completed", "not-completed"
   const [editSchedule, setEditSchedule] = useState(null);
   const [updatedSchedule, setUpdatedSchedule] = useState({});
   const navigate = useNavigate();
   const [hoveredRow, setHoveredRow] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [daySchedules, setDaySchedules] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const token = localStorage.getItem('token'); 
+  const userRole = localStorage.getItem("userRole");
 
-  const toggleStatus = (id) => {
-    setSchedules(
-      schedules.map((schedule) =>
-        schedule.id === id
-          ? {
-              ...schedule,
-              status:
-                schedule.status === "Completed" ? "Not Completed" : "Completed",
-            }
+  useEffect(() => {
+    console.log("Component mounted. Fetching schedules...");
+
+    if(userRole === 'USER'){
+      getSchedules();
+    }else{
+      getAllSchedules();
+    }
+
+  }, []);
+
+  // Admin call
+  const getAllSchedules = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('http://localhost:5100/api/getAll', {
+        headers: {
+          'Authorization': `Bearer ${token}`  
+        }
+      });
+      setSchedules(response.data.data);
+      console.log("The schedules are", response.data.data);
+  
+    } catch (error) {
+      console.error("Error fetching schedules:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+ // user call
+  const getSchedules = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('http://localhost:5100/api/get', {
+        headers: {
+          'Authorization': `Bearer ${token}`  
+        }
+      });
+      setSchedules(response.data.data);
+      console.log("The schedules are", response.data.data);
+  
+    } catch (error) {
+      console.error("Error fetching schedules:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+  // Filter schedules based on currentStatus
+  const filteredSchedules = schedules.filter((schedule) => {
+    if (filter === "all") return true;
+    if (filter === "completed") return schedule.currentStatus === true;
+    if (filter === "not-completed") return schedule.currentStatus === false;
+    return true;
+  });
+
+  const viewDaySchedules = (daySchedules) => {
+    setShowModal(true);
+    setDaySchedules(daySchedules);
+    console.log("the day schedules are ", daySchedules);
+  };
+
+  const toggleStatus = async (_id) => {
+    try {
+      const scheduleToUpdate = schedules.find(schedule => schedule._id === _id);
+      if (!scheduleToUpdate) return;
+  
+      const newStatus = !scheduleToUpdate.currentStatus;
+  
+      const result = await Swal.fire({
+        title: `Are you sure?`,
+        text: `You are about to mark this schedule as ${newStatus ? 'Completed' : 'Not Completed'}.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, change it!'
+      });
+  
+      if (!result.isConfirmed) return;
+  
+      const response = await axios.put(
+        `http://localhost:5100/api/updateStatus/${_id}`,
+        { currentStatus: newStatus }, {
+          headers: {
+            'Authorization': `Bearer ${token}`  
+          }
+        }
+      );
+  
+      setSchedules(schedules.map(schedule =>
+        schedule._id === _id
+          ? { ...schedule, currentStatus: newStatus }
           : schedule
-      )
-    );
+      ));
+  
+      Swal.fire(
+        'Status Updated!',
+        `Schedule is now ${newStatus ? '✅ Completed' : '⏳ Not Completed'}`,
+        'success'
+      );
+    } catch (error) {
+      console.error("Error toggling status:", error);
+      Swal.fire('Error!', 'Failed to update schedule status.', 'error');
+    }
   };
 
-  const handleDelete = (id) => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, delete it!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        setSchedules(schedules.filter((schedule) => schedule.id !== id));
-        Swal.fire("Deleted!", "Your schedule has been deleted.", "success");
-      }
-    });
+  const handleDelete = async (_id) => {
+    try {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!"
+      });
+  
+      if (!result.isConfirmed) return;
+  
+      const response = await axios.delete(`http://localhost:5100/api/deleteSchedule/${_id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`  
+        }        
+      });
+      setSchedules(schedules.filter((schedule) => schedule._id !== _id));
+  
+      Swal.fire("Deleted!", "Your schedule has been deleted.", "success");
+    } catch (error) {
+      console.error("Error deleting schedule:", error);
+      Swal.fire("Error", "Something went wrong while deleting!", "error");
+    }
   };
 
-  const handleEdit = (schedule) => {
-    setEditSchedule(schedule.id);
-    setUpdatedSchedule(schedule);
+
+  
+  const handleEdit = async (schedule) => {
+    setEditSchedule(schedule);
+    navigate('/addschedule', {
+      state: { editData: schedule },
+    })
   };
 
-  const handleUpdate = () => {
-    setSchedules(
-      schedules.map((schedule) =>
-        schedule.id === editSchedule ? updatedSchedule : schedule
-      )
-    );
-    setEditSchedule(null);
-  };
-
-  const filteredSchedules = schedules.filter(
-    (schedule) => filter === "All" || schedule.status === filter
-  );
 
   const generateReport = () => {
-    const completed = schedules.filter((s) => s.status === "Completed").length;
-    const pending = schedules.filter(
-      (s) => s.status === "Not Completed"
-    ).length;
-    const total = schedules.length;
-
-    alert(
-      `Report:\nTotal: ${total}\nCompleted: ${completed} (${(
-        (completed / total) *
-        100
-      ).toFixed(2)}%)\nPending: ${pending} (${((pending / total) * 100).toFixed(
-        2
-      )}%)`
-    );
+    // Calculate statistics
+    const totalSchedules = schedules.length;
+    const completed = schedules.filter(s => s.currentStatus === true).length;
+    const pending = totalSchedules - completed;
+    const completionRate = totalSchedules > 0 ? (completed / totalSchedules * 100).toFixed(2) : 0;
+    const pendingRate = totalSchedules > 0 ? (pending / totalSchedules * 100).toFixed(2) : 0;
+  
+    // Create new PDF document
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(18);
+    doc.text('Schedule Completion Report', 15, 20);
+    
+    // Add date
+    doc.setFontSize(12);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 15, 30);
+    
+    // Add summary statistics
+    doc.setFontSize(14);
+    doc.text('Summary Statistics', 15, 45);
+    
+    const summaryData = [
+      ['Total Schedules', totalSchedules],
+      ['Completed Schedules', completed],
+      ['Pending Schedules', pending],
+      ['Completion Rate', `${completionRate}%`],
+      ['Pending Rate', `${pendingRate}%`]
+    ];
+    
+    // Use autoTable plugin correctly
+    autoTable(doc, {
+      startY: 50,
+      head: [['Metric', 'Value']],
+      body: summaryData,
+      theme: 'grid',
+      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+    });
+    
+    // Add detailed schedule table
+    doc.setFontSize(14);
+    const finalY = doc.lastAutoTable.finalY || 50;
+    doc.text('Schedule Details', 15, finalY + 20);
+    
+    const scheduleData = schedules.map(schedule => [
+      schedule.trainer,
+      new Date(schedule.startDate).toLocaleDateString(),
+      new Date(schedule.endDate).toLocaleDateString(),
+      schedule.classType,
+      schedule.recurrence,
+      schedule.currentStatus ? 'Completed' : 'Pending'
+    ]);
+    
+    autoTable(doc, {
+      startY: finalY + 25,
+      head: [
+        ['trainer', 'Start Date', 'End Date', 'Class Type', 'Recurrence', 'Status']
+      ],
+      body: scheduleData,
+      theme: 'grid',
+      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+      columnStyles: {
+        0: { cellWidth: 25 },
+        1: { cellWidth: 25 },
+        2: { cellWidth: 25 },
+        3: { cellWidth: 25 },
+        4: { cellWidth: 25 },
+        5: { cellWidth: 25 }
+      }
+    });
+    
+    // Save the PDF
+    doc.save('Schedule_Report.pdf');
   };
-
+  
   return (
     <div className="content" style={{ overflowY: "auto", height: "100vh" }}>
       <div className="container-fluid" style={{ marginTop: "20px" }}>
-        <div
-          className="card"
-          style={{ boxShadow: "rgba(0, 0, 0, 0.75) 0px 0px 4px -1px" }}
-        >
+        <div className="card" style={{ boxShadow: "rgba(0, 0, 0, 0.75) 0px 0px 4px -1px" }}>
           <div className="card-body">
-            <h4 className="header-title mb-3">Membership Management</h4>
+            <h4 className="header-title mb-3">Schedule Management</h4>
             <div style={{ marginBottom: "20px" }}>
               <div className="d-flex align-items-center mb-4">
                 <select
                   onChange={(e) => setFilter(e.target.value)}
                   className="form-select"
                   style={{ width: "auto" }}
+                  value={filter}
                 >
-                  <option value="All">All</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Not Completed">Not Completed</option>
+                  <option value="all">All</option>
+                  <option value="completed">Completed</option>
+                  <option value="not-completed">Not Completed</option>
                 </select>
 
-                <button onClick={generateReport} className="btn  btn-blue ms-3">
-                  Generate Report
+                <button 
+                  onClick={generateReport} 
+                  className="btn btn-pink ms-3"
+                >
+                  PDF Report
                 </button>
 
                 <button
@@ -151,112 +277,100 @@ const ManageSchedules = () => {
                 >
                   Create Schedule
                 </button>
+
               </div>
             </div>
 
             {filteredSchedules.length === 0 ? (
-              <p className="text-muted mt-3">No schedules available.</p>
+              <p className="text-muted mt-3">
+                {schedules.length === 0 ? "No schedules available." : "No schedules match the current filter."}
+              </p>
             ) : (
               <table className="table table-bordered mt-3">
                 <thead>
                   <tr className="table-light">
-                    <th style={{ width: "20%" }}>Day</th>
-                    <th style={{ width: "20%" }}>Start Time</th>
-                    <th style={{ width: "20%" }}>End Time</th>
-                    <th style={{ width: "20%" }}>Status</th>
-                    <th style={{ width: "20%" }}>Actions</th>
+                    {
+                      userRole === 'ADMIN' && (
+                        <th>created by</th>
+                      )
+                    }
+                    {
+                      userRole === 'ADMIN' && (
+                        <th>created at</th>
+                      )
+                    }
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Type</th>
+                    <th>Membership</th>
+                    <th>Trainer</th>
+                    <th>Recurrence</th>
+                    <th>Status</th>
+                    <th>Schedules</th>
+                    <th>Edit</th>
+                    <th>Delete</th>
+                    <th>Toggle</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredSchedules.map((schedule) => (
                     <tr
-                      key={schedule.id}
+                      key={schedule._id}
                       style={{
                         cursor: "pointer",
-                        backgroundColor:
-                          hoveredRow === schedule.id
-                            ? "#f1f1f1"
-                            : "transparent",
+                        backgroundColor: hoveredRow === schedule._id ? "#f1f1f1" : "transparent",
                       }}
-                      onMouseEnter={() => setHoveredRow(schedule.id)}
+                      onMouseEnter={() => setHoveredRow(schedule._id)}
                       onMouseLeave={() => setHoveredRow(null)}
                     >
-                      <td>{schedule.day}</td>
+                      {
+                        userRole === 'ADMIN' && (
+                          <td>{schedule.createdByName}</td>
+                        )
+                      }
+                      {
+                        userRole === 'ADMIN' && (
+                          <td>{new Date(schedule.createdAt).toLocaleString()}</td>
+                        )
+                      }
+                      <td>{new Date(schedule.startDate).toLocaleDateString()}</td>
+                      <td>{new Date(schedule.endDate).toLocaleDateString()}</td>
+                      <td>{schedule.classType}</td>
+                      <td>{schedule.membershipName}</td>
+                      <td>{schedule.trainer}</td>
+                      <td>{schedule.recurrence}</td>
+                      <td>{schedule.currentStatus ? "✅ Completed" : "⏳ Not Completed"}</td>
                       <td>
-                        {editSchedule === schedule.id ? (
-                          <input
-                            type="time"
-                            value={updatedSchedule.startTime}
-                            onChange={(e) =>
-                              setUpdatedSchedule({
-                                ...updatedSchedule,
-                                startTime: e.target.value,
-                              })
-                            }
-                            className="form-control form-control-sm"
-                          />
-                        ) : (
-                          schedule.startTime
-                        )}
-                      </td>
-                      <td>
-                        {editSchedule === schedule.id ? (
-                          <input
-                            type="time"
-                            value={updatedSchedule.endTime}
-                            onChange={(e) =>
-                              setUpdatedSchedule({
-                                ...updatedSchedule,
-                                endTime: e.target.value,
-                              })
-                            }
-                            className="form-control form-control-sm"
-                          />
-                        ) : (
-                          schedule.endTime
-                        )}
-                      </td>
-                      <td>
-                        <span
-                          className={`badge ${
-                            schedule.status === "Completed"
-                              ? "bg-success"
-                              : "bg-warning text-dark"
-                          } px-2 py-2`}
+                        <button 
+                          onClick={() => viewDaySchedules(schedule.daySchedules)}
+                          className="btn btn-soft-secondary btn-sm"
                         >
-                          {schedule.status}
-                        </span>
+                          Edit
+                        </button>
                       </td>
                       <td>
-                        {editSchedule === schedule.id ? (
-                          <button
-                            onClick={handleUpdate}
-                            className="btn btn-success btn-sm"
-                          >
-                            Save
-                          </button>
-                        ) : (
-                          <div className="btn-group">
-                            <button
-                              onClick={() => handleEdit(schedule)}
-                              className="btn btn-info btn-sm me-3"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDelete(schedule.id)}
-                              className="btn btn-danger btn-sm me-3"
-                            >
-                              Delete
-                            </button>
-                            <button
-                              onClick={() => toggleStatus(schedule.id)}
-                              className="btn btn-secondary btn-sm"
-                            >
-                              Toggle
-                            </button>
-                          </div>
-                        )}
+                        <button
+                          onClick={() => handleEdit(schedule)}
+                          className="btn btn-blue btn-sm"
+                        >
+                          Edit
+                        </button>
+                      </td>
+                      <td>
+                        <button 
+                          onClick={() => handleDelete(schedule._id)}
+                          className="btn btn-danger btn-sm"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                      <td>
+                        <button 
+                          onClick={() => toggleStatus(schedule._id)}
+                          className="btn btn-info btn-sm"
+                        >
+                          Toggle
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -264,6 +378,15 @@ const ManageSchedules = () => {
               </table>
             )}
           </div>
+
+          {showModal && (
+            <DaySchedulesTable 
+              daySchedules={daySchedules}
+              onClose={() => setShowModal(false)}
+              getAllSchedules = {getAllSchedules}
+            />
+          )}
+          {showModal && <div className="modal-backdrop fade show"></div>}
         </div>
       </div>
     </div>

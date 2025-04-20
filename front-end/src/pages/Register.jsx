@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ const Register = () => {
       .catch((err) => console.error("Token verification failed:", err));
   }, [navigate]);
 
-  const handleSubmit = async (e) => {
+/*   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!acceptedTerms) {
@@ -60,7 +61,93 @@ const Register = () => {
       }
     }
   };
+ */
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    if (!acceptedTerms) {
+      Swal.fire({
+        icon: "warning",
+        title: "Terms not accepted",
+        text: "Please accept the terms and conditions.",
+        confirmButtonColor: "#3085d6",
+      });
+      return;
+    }
+  
+    if (password !== cpassword) {
+      Swal.fire({
+        icon: "error",
+        title: "Password Mismatch",
+        text: "Passwords do not match.",
+        confirmButtonColor: "#3085d6",
+      });
+      return;
+    }
+  
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      Swal.fire({
+        icon: "error",
+        title: "Weak Password",
+        text: passwordError,
+        confirmButtonColor: "#3085d6",
+      });
+      return;
+    }
+  
+    try {
+      await axios.post("http://localhost:5100/api/auth/register", {
+        username,
+        name,
+        email,
+        password,
+      });
+  
+      setUsername("");
+      setName("");
+      setEmail("");
+      setPassword("");
+      setCpassword("");
+      setError("");
+  
+      Swal.fire({
+        icon: "success",
+        title: "Registration Successful!",
+        text: "You can now log in.",
+        confirmButtonColor: "#3085d6",
+      }).then(() => {
+        navigate("/login");
+      });
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || "Registration failed. Please try again.";
 
+      if (errorMessage === "User already exists") {
+        Swal.fire({
+          icon: "error",
+          title: "Email Already Registered",
+          text: "Please use a different email address.",
+          confirmButtonColor: "#3085d6",
+        });
+      } else if (errorMessage === "Username already exists") {
+        Swal.fire({
+          icon: "error",
+          title: "Username Taken",
+          text: "Please choose another username.",
+          confirmButtonColor: "#3085d6",
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: errorMessage,
+          confirmButtonColor: "#3085d6",
+        });
+      }
+    }
+  };
+  
   const validatePassword = (password) => {
     if (!/[a-z]/.test(password)) return "Password must have a lowercase letter";
     if (!/[A-Z]/.test(password))

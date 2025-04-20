@@ -131,6 +131,7 @@ const GymWebsite = () => {
               <li><a href="#schedule">Schedule</a></li>
               <li><a href="#price">Price</a></li>
               <li><a href="#contact">Contact</a></li>
+              <li><Link to="welcome">Dashboard</Link></li>
               <li><Link to="/login">Log In</Link></li>
             </ul>
           </div>

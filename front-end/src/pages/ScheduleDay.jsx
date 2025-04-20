@@ -1,54 +1,103 @@
 import React, { useState, useEffect } from "react";
 
-const ScheduleDay = ({ day, recurrence, onScheduleChange }) => {
-  const [isActive, setIsActive] = useState(false);
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+const ScheduleDay = ({ day, recurrence, onScheduleChange, schedule, isEditMode }) => {
+  const [isActive, setIsActive] = useState(schedule.status || false);
+  const [times, setTimes] = useState({
+    startTime: schedule.startTime || "",
+    endTime: schedule.endTime || ""
+  });
   const [timeError, setTimeError] = useState("");
 
+  // Initialize based on schedule data when component mounts
   useEffect(() => {
-    if (
-      recurrence === "weekdays" &&
-      ["mon", "tue", "wed", "thu", "fri"].includes(day.id)
-    ) {
-      setIsActive(true);
-    } else if (recurrence === "weekends" && ["sat", "sun"].includes(day.id)) {
-      setIsActive(true);
-    } else if (recurrence === "daily") {
-      setIsActive(true);
+    if (isEditMode) {
+      setIsActive(schedule.status || false);
+      setTimes({
+        startTime: schedule.startTime || "",
+        endTime: schedule.endTime || ""
+      });
     }
-  }, [recurrence, day.id]);
+  }, [isEditMode]); // Only run when isEditMode changes
 
+  // Handle recurrence changes (only for new schedules)
   useEffect(() => {
-    if (startTime && endTime) {
-      if (startTime >= endTime) {
+    if (!isEditMode) {
+      let active = false;
+      switch (recurrence) {
+        case "weekdays":
+          active = ["mon", "tue", "wed", "thu", "fri"].includes(day.id);
+          break;
+        case "weekends":
+          active = ["sat", "sun"].includes(day.id);
+          break;
+        case "daily":
+          active = true;
+          break;
+        case "custom":
+        default:
+          // Don't change active state for custom in edit mode
+      }
+      if (active !== isActive) {
+        setIsActive(active);
+      }
+    }
+  }, [recurrence, day.id, isEditMode]);
+
+  // Handle time validation (without triggering parent updates)
+  useEffect(() => {
+    if (isActive && times.startTime && times.endTime) {
+      if (times.startTime >= times.endTime) {
         setTimeError("End time must be after start time");
       } else {
         setTimeError("");
-        onScheduleChange(day.id, { startTime, endTime });
       }
-    } else {
-      setTimeError("");
     }
-  }, [startTime, endTime, day.id, onScheduleChange]);
+  }, [times, isActive]);
+
+  const handleTimeChange = (e) => {
+    const { name, value } = e.target;
+    const newTimes = {
+      ...times,
+      [name]: value
+    };
+    setTimes(newTimes);
+    
+    // Only call onScheduleChange if times are valid
+    if (isActive && newTimes.startTime && newTimes.endTime && newTimes.startTime < newTimes.endTime) {
+      onScheduleChange(day.id, {
+        ...newTimes,
+        status: true
+      });
+    }
+  };
 
   const handleToggle = () => {
-    const newActiveState = !isActive;
-    setIsActive(newActiveState);
-
-    if (!newActiveState) {
-      setStartTime("");
-      setEndTime("");
-      onScheduleChange(day.id, { startTime: "", endTime: "" });
+    const newActive = !isActive;
+    setIsActive(newActive);
+    
+    if (!newActive) {
+      const resetTimes = { startTime: "", endTime: "" };
+      setTimes(resetTimes);
+      onScheduleChange(day.id, {
+        ...resetTimes,
+        status: false
+      });
+    } else {
+      // When activating, set default times if empty
+      const newTimes = {
+        startTime: times.startTime || "08:00",
+        endTime: times.endTime || "09:00"
+      };
+      setTimes(newTimes);
+      onScheduleChange(day.id, {
+        ...newTimes,
+        status: true
+      });
     }
   };
 
   return (
-    <div
-      className={`schedule-day-card mb-3 p-3 rounded ${
-        isActive ? "active" : ""
-      }`}
-    >
+    <div className={`schedule-day-card mb-3 p-3 rounded ${isActive ? "active" : ""}`}>
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div className="d-flex align-items-center gap-3">
           <div className="form-check form-switch">
@@ -59,13 +108,12 @@ const ScheduleDay = ({ day, recurrence, onScheduleChange }) => {
               checked={isActive}
               onChange={handleToggle}
               id={`switch-${day.id}`}
+              disabled={recurrence !== "custom"}
             />
           </div>
           <label
             htmlFor={`switch-${day.id}`}
-            className={`form-check-label mb-0 ${
-              isActive ? "fw-bold" : "text-muted"
-            }`}
+            className={`form-check-label mb-0 ${isActive ? "fw-bold" : "text-muted"}`}
           >
             {day.label}
           </label>
@@ -77,8 +125,9 @@ const ScheduleDay = ({ day, recurrence, onScheduleChange }) => {
               <label className="small">From</label>
               <input
                 type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
+                name="startTime"
+                value={times.startTime}
+                onChange={handleTimeChange}
                 className="form-control form-control-sm"
               />
             </div>
@@ -86,9 +135,10 @@ const ScheduleDay = ({ day, recurrence, onScheduleChange }) => {
               <label className="small">To</label>
               <input
                 type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                min={startTime}
+                name="endTime"
+                value={times.endTime}
+                onChange={handleTimeChange}
+                min={times.startTime}
                 className="form-control form-control-sm"
               />
             </div>

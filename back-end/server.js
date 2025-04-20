@@ -9,6 +9,11 @@ const app = express();
 app.use(express.json());
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
+const path = require("path");
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+
 
 console.log("Frontend URL:", process.env.FRONTEND_URL);
 
@@ -24,7 +29,10 @@ app.options("*", cors());
 
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
-
+app.use("/api/", require("./routes/membershipRoutes"));
+app.use("/api/", require("./routes/scheduleRoutes"));
+app.use("/api/", require("./routes/trainerRoutes"));
+app.use("/api/", require("./routes/userRoutes"));
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))

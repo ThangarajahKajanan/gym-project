@@ -3,9 +3,10 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import TopBar from "./components/TopBar";
 
-const ProtectedRoute = ({ adminOnly }) => {
+const ProtectedRoute = ({ allowedRoles = [] }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [userRole, setUserRole] = useState(null);
 
     useEffect(() => {
         // Verify the token with the backend using cookies
@@ -13,23 +14,27 @@ const ProtectedRoute = ({ adminOnly }) => {
             .then(response => {
                 setIsAuthenticated(true);
                 setIsAdmin(response.data.role === 'ADMIN');
+                setUserRole(response.data.role)
+                localStorage.setItem("userRole", response.data.role);
             })
             .catch(() => setIsAuthenticated(false));
     }, []);
 
     if (isAuthenticated === null) return <div>Loading...</div>;
-
-    if (!isAuthenticated) return <Navigate to="/login" />; 
-
-    if (adminOnly && !isAdmin) return <Navigate to="/" />; 
+    if (!isAuthenticated) return <Navigate to="/" />; 
+    if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
+        return <Navigate to="/welcome" />;
+    }
 
     return (
-        <div>
+        <>
+        <div id="wrapper">
             <TopBar />
-            <div className="">
-                <Outlet /> 
+            <div className="content-page">
+                <Outlet />
             </div>
         </div>
+    </>
     );
 };
 

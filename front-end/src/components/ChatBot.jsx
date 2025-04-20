@@ -1,7 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
 import { FaPaperPlane } from "react-icons/fa";
-import Swal from "sweetalert2"; // Import SweetAlert2
+import Swal from "sweetalert2"; 
+import { Link } from 'react-router-dom';
+
 
 export default function ChatBot() {
   const [messages, setMessages] = useState([
@@ -28,7 +30,7 @@ export default function ChatBot() {
   };
 
   const handleSubmit = async () => {
-    // Check if any fields are missing
+
     if (
       !formData.Sex ||
       !formData.Age ||
@@ -147,101 +149,135 @@ export default function ChatBot() {
   };
 
   return (
-    <div
-      className="container bg-dark text-white p-4 rounded shadow   "
-      style={{ maxWidth: "600px" }}
-    >
-      <div className="mb-4">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`p-2 mb-2 rounded ${
-              msg.sender === "bot" ? "bg-primary" : "bg-secondary"
-            }`}
-          >
-            {msg.text}
+    <div className="content" style={{ overflowY: "auto", height: "100vh" }}>
+      <div className="container-fluid" style={{ marginTop: "20px" }}>
+        <div
+          className="card"
+          style={{ boxShadow: "rgba(0, 0, 0, 0.75) 0px 0px 4px -1px" }}
+        >
+          <div className="card-body">
+            <h4 className="header-title mb-0"> </h4>
+            <div style={{ marginBottom: "20px" }}>
+              <div className="d-flex justify-content-end">
+              <Link to="/welcome">
+                <button className="btn btn-blue">Dashboard</button>
+              </Link>
+              </div>
+            </div>
+            <div
+              style={{
+                padding: "20px",
+                backgroundColor: "#f0f4f8",
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: "#ffffff",
+                  padding: "60px",
+                  borderRadius: "10px",
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                  marginBottom: "20px",
+                }}
+              >
+                <div className="mb-4">
+                  {messages.map((msg, index) => (
+                    <div
+                      key={index}
+                      className={`p-2 mb-2 rounded ${
+                     msg.sender === "bot" ? "bg-primary bg-opacity-25 text-dark" : "bg-secondary bg-opacity-25 text-dark"
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="form-group">
+                  <select
+                    name="Sex"
+                    onChange={handleChange}
+                    className="form-control mb-3"
+                    value={formData.Sex}
+                  >
+                    <option value="" disabled>
+                      Select Gender
+                    </option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+
+                  <input
+                    type="number"
+                    name="Age"
+                    placeholder="Age"
+                    onChange={handleChange}
+                    className="form-control mb-3"
+                    value={formData.Age}
+                  />
+                  <input
+                    type="number"
+                    name="Height"
+                    placeholder="Height (meters)"
+                    onChange={handleChange}
+                    className="form-control mb-3"
+                    value={formData.Height}
+                  />
+                  <input
+                    type="number"
+                    name="Weight"
+                    placeholder="Weight (kg)"
+                    onChange={handleChange}
+                    className="form-control mb-3"
+                    value={formData.Weight}
+                  />
+
+                  <select
+                    name="Level"
+                    onChange={handleChange}
+                    className="form-control mb-3"
+                    value={formData.Level}
+                  >
+                    <option value="" disabled>
+                      Select Level
+                    </option>
+                    <option value="Underweight">Underweight</option>
+                    <option value="Normal">Normal</option>
+                    <option value="Overweight">Overweight</option>
+                    <option value="Obese">Obese</option>
+                  </select>
+
+                  <select
+                    name="FitnessGoal"
+                    onChange={handleChange}
+                    className="form-control mb-3"
+                    value={formData.FitnessGoal}
+                  >
+                    <option value="" disabled>
+                      Select Goal
+                    </option>
+                    <option value="Weight Gain">Weight Gain</option>
+                    <option value="Weight Loss">Weight Loss</option>
+                  </select>
+
+                  <button
+                    onClick={handleSubmit}
+                    className="btn btn-primary w-100 mt-2 d-flex justify-content-center align-items-center"
+                  >
+                    Get Recommendation <FaPaperPlane className="ms-2" />
+                  </button>
+
+                  {/* Clear Button */}
+                  <button
+                    onClick={handleClear}
+                    className="btn btn-secondary w-100 mt-2"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        ))}
-      </div>
-
-      <div className="form-group">
-        <select
-          name="Sex"
-          onChange={handleChange}
-          className="form-select bg-dark text-white mb-2"
-          value={formData.Sex}
-        >
-          <option value="" disabled>
-            Select Gender
-          </option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-
-        <input
-          type="number"
-          name="Age"
-          placeholder="Age"
-          onChange={handleChange}
-          className="form-control bg-dark text-white mb-2"
-          value={formData.Age}
-        />
-        <input
-          type="number"
-          name="Height"
-          placeholder="Height (meters)"
-          onChange={handleChange}
-          className="form-control bg-dark text-white mb-2"
-          value={formData.Height}
-        />
-        <input
-          type="number"
-          name="Weight"
-          placeholder="Weight (kg)"
-          onChange={handleChange}
-          className="form-control bg-dark text-white mb-2"
-          value={formData.Weight}
-        />
-
-        <select
-          name="Level"
-          onChange={handleChange}
-          className="form-select bg-dark text-white mb-2"
-          value={formData.Level}
-        >
-          <option value="" disabled>
-            Select Level
-          </option>
-          <option value="Underweight">Underweight</option>
-          <option value="Normal">Normal</option>
-          <option value="Overweight">Overweight</option>
-          <option value="Obese">Obese</option>
-        </select>
-
-        <select
-          name="FitnessGoal"
-          onChange={handleChange}
-          className="form-select bg-dark text-white mb-2"
-          value={formData.FitnessGoal}
-        >
-          <option value="" disabled>
-            Select Goal
-          </option>
-          <option value="Weight Gain">Weight Gain</option>
-          <option value="Weight Loss">Weight Loss</option>
-        </select>
-
-        <button
-          onClick={handleSubmit}
-          className="btn btn-primary w-100 mt-2 d-flex justify-content-center align-items-center"
-        >
-          Get Recommendation <FaPaperPlane className="ms-2" />
-        </button>
-
-        {/* Clear Button */}
-        <button onClick={handleClear} className="btn btn-secondary w-100 mt-2">
-          Clear All
-        </button>
+        </div>
       </div>
     </div>
   );

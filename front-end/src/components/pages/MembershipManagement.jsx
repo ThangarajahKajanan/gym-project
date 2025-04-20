@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import $ from "jquery";
+import $, { get } from "jquery";
 import "datatables.net-dt";
 import "datatables.net-buttons/js/dataTables.buttons";
 import "datatables.net-buttons/js/buttons.html5";
@@ -9,137 +9,135 @@ import "datatables.net-buttons-dt";
 import "datatables.net-buttons-dt/css/buttons.dataTables.min.css";
 import "../../CSS/membership.css";
 import Swal from "sweetalert2";
-import MemberShipForm from "../MembershipForm";
 import { useNavigate } from "react-router-dom";
-import dia from "../../images/dia.png";
-import plati from "../../images/plati.jpg";
-import sil from "../../images/sil.jpeg";
+import axios from "axios";
+import icon_placeholder from '../../images/No_image_available.png'
 
-const DataTableComponent = () => {
+const MembershipManagement = () => {
   const tableRef = useRef(null);
   const [showForm, setShowForm] = useState(false);
   const navigate = useNavigate();
+  const [data, setData] = useState([]);
+  const [editData, setEditData] = useState(null);
+  const userRole = localStorage.getItem("userRole");
+  const token = localStorage.getItem('token'); 
+
+
+  const [loading, setLoading] = useState(true);
+  useEffect( ()=> {
+    getMembershipData();
+  }, [])
+
+  const getMembershipData = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('http://localhost:5100/api/getAllMembership', {
+        headers: {
+          'Authorization': `Bearer ${token}`  
+        }
+      });
+      setData(response.data.data);
+    } catch (error) {
+      console.error("Error fetching membership data:", error);
+      Swal.fire("Error", "Failed to load membership data", "error");
+    } finally {
+      setLoading(false);
+    }
+  }
+/* 
   useEffect(() => {
     window.jQuery = window.$ = $;
-
-    const data = [
-      {
-        membershipPhoto: dia,
-        membershipName: "Gold Membership",
-        membershipType: "type 1",
-        office: "New York",
-        membershipPeriod: "30",
-        joinFee: "$100",
-        charge: "$20/month",
-      },
-      {
-        membershipPhoto: plati,
-        membershipName: "Silver Membership",
-        membershipType: "type 2",
-        office: "London",
-        membershipPeriod: "60",
-        joinFee: "$50",
-        charge: "$10/month",
-      },
-      {
-        membershipPhoto: sil,
-        membershipName: "Platinum Membership",
-        membershipType: "type 3",
-        office: "Paris",
-        membershipPeriod: "90",
-        joinFee: "$200",
-        charge: "$30/month",
-      },
-      {
-        membershipPhoto: dia,
-        membershipName: "Diamond Membership",
-        membershipType: "type 4",
-        office: "Berlin",
-        membershipPeriod: "120",
-        joinFee: "$500",
-        charge: "$50/month",
-      },
-      {
-        membershipPhoto: plati,
-        membershipName: "Bronze Membership",
-        membershipType: "type 5",
-        office: "Sydney",
-        membershipPeriod: "180",
-        joinFee: "$150",
-        charge: "$15/month",
-      },
-      {
-        membershipPhoto: sil,
-        membershipName: "Emerald Membership",
-        membershipType: "type 6",
-        office: "Tokyo",
-        membershipPeriod: "60",
-        joinFee: "$120",
-        charge: "$25/month",
-      },
-      {
-        membershipPhoto: dia,
-        membershipName: "Ruby Membership",
-        membershipType: "type 7",
-        office: "Dubai",
-        membershipPeriod: "45",
-        joinFee: "$200",
-        charge: "$35/month",
-      },
-      {
-        membershipPhoto: plati,
-        membershipName: "Sapphire Membership",
-        membershipType: "type 8",
-        office: "Mumbai",
-        membershipPeriod: "120",
-        joinFee: "$350",
-        charge: "$40/month",
-      },
-      {
-        membershipPhoto: sil,
-        membershipName: "Titanium Membership",
-        membershipType: "type 9",
-        office: "Shanghai",
-        membershipPeriod: "24",
-        joinFee: "$600",
-        charge: "$60/month",
-      },
-      {
-        membershipPhoto: dia,
-        membershipName: "Pearl Membership",
-        membershipType: "type 10",
-        office: "Los Angeles",
-        membershipPeriod: "60",
-        joinFee: "$400",
-        charge: "$45/month",
-      },
-    ];
-
+    
     const dataTable = $(tableRef.current).DataTable({
       data: data,
       dom: "Bfrtip",
-      buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"],
+      buttons: [ "pdf", "csv", "excel", "print", "copy", "colvis"],
       columns: [
         {
           title: "Photo",
           data: "membershipPhoto",
           render: (data, type, row) => {
-            return `<img src="${data}" alt="Photo" class="rounded-img" style="width: 50px; height: 50px; object-fit: cover;">`;
+            const imageUrl = data ? `http://localhost:5100/${data}` : icon_placeholder;
+            return `<img src="${imageUrl}" alt="Membership Photo" class="rounded-img" style="width: 50px; height: 50px; object-fit: cover;">`;
           },
+        }, 
+        { title: "Name", data: "membershipName" },
+        { title: "Type", data: "membershipType" },
+        { title: "Period", data: "membershipPeriod" },
+        {
+          title: "Join Fee",
+          data: "isJoinFee",
+          render: (data, type, row) => {
+            const checked = data ? "checked" : "";
+            return `
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" ${checked} style="pointer-events: none;   background-color: ${data ? '#4CAF50' : '#fff'}; border-color: ${data ? '#4CAF50' : '#ccc'};">
+              </div>
+            `;
+          }
         },
-        { title: "Membership Name", data: "membershipName" },
-        { title: "Membership Type", data: "membershipType" },
-        { title: "Membership Period", data: "membershipPeriod" },
-        { title: "Join Fee", data: "joinFee" },
+        
         { title: "Charge", data: "charge" },
+        { title: "Purche Date", data: "isStartDateOfPurches" },
+        {
+          title: "Purche Date",
+          data: "isStartDateOfPurches",
+          render: (data, type, row) => {
+            const checked = data ? "checked" : "";
+            return `
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" ${checked} style="pointer-events: none;  background-color: ${data ? '#4CAF50' : '#fff'}; border-color: ${data ? '#4CAF50' : '#ccc'};">
+              </div>
+            `;
+          }
+        },
+        
+        
+
+        { title: "Duration", data: "cancellationDuration" },
+
+
+        {
+          title: "Policy",
+          data: "cancellationPolicy",
+          render: (data, type, row) => {
+            const content = data ? data.replace(/"/g, '&quot;') : 'No policy available';
+            return `
+              <button 
+                class="btn btn-sm btn-outline-primary view-details-btn" 
+                data-bs-toggle="modal" 
+                data-bs-target="#policyModal"
+                data-title="Cancellation Policy"
+                data-content="${content}">
+                View
+              </button>
+            `;
+          }
+        },
+        {
+          title: "Description",
+          data: "membershipDescription",
+          render: (data, type, row) => {
+            const content = data ? data.replace(/"/g, '&quot;') : 'No description available';
+            return `
+              <button 
+                class="btn btn-sm btn-outline-secondary view-details-btn" 
+                data-bs-toggle="modal" 
+                data-bs-target="#policyModal"
+                data-title="Membership Description"
+                data-content="${content}">
+                View
+              </button>
+            `;
+          }
+        },
+        
         {
           title: "Edit",
           data: null,
           defaultContent: "",
           render: (data, type, row) => {
-            return `<button class="btn btn-blue btn-sm edit-btn" data-id="${
-              row.membershipName
-            }" data-details='${JSON.stringify(row)}'>Edit</button>`;
+            return `<button class="btn btn-blue btn-sm edit-btn" data-id="${row.id}" data-details='${JSON.stringify(row)}'>Edit</button>`;
           },
         },
         {
@@ -147,29 +145,28 @@ const DataTableComponent = () => {
           data: null,
           defaultContent: "",
           render: (data, type, row) => {
-            return `<button class="btn btn-danger btn-sm delete-btn" data-id="${row.id}">Delete</button>`;
+            return `<button class="btn btn-danger btn-sm delete-btn" data-id="${row._id}">Delete</button>`;
           },
-        },
-        {
-          title: "Activities",
-          data: null,
-          defaultContent: "",
-          render: (data, type, row) => {
-            return `<button class="btn btn-info btn-sm activities-btn" data-id="${row.id}">Activities</button>`;
-          },
-        },
+        }
+
+
+
+
       ],
       responsive: true,
       destroy: true,
     });
 
     $(tableRef.current).on("click", ".edit-btn", function () {
-      const membershipData = $(this).data("details");
-      handleEditMembershipClick(membershipData);
+      const rowData = $(this).data("details");
+      setEditData(rowData)
+      handleEditMembershipClick(rowData);
     });
 
     $(tableRef.current).on("click", ".delete-btn", function () {
       const rowId = $(this).data("id");
+      const rowElement = $(this).closest("tr");
+    
       Swal.fire({
         title: "Are you sure?",
         text: "Do you want to delete this record?",
@@ -180,11 +177,19 @@ const DataTableComponent = () => {
         confirmButtonText: "Yes, delete!",
       }).then((result) => {
         if (result.isConfirmed) {
-          Swal.fire("Deleted!", "The record has been deleted.", "success");
-          dataTable.row($(this).closest("tr")).remove().draw();
+          deleteMembership(rowId, rowElement); 
         }
       });
     });
+    
+    $(tableRef.current).on("click", ".view-details-btn", function () {
+      const title = $(this).data("title");
+      const content = $(this).data("content");
+    
+      $("#policyModalLabel").text(title);
+      $("#policyModalBody").html(content);
+    });
+    
 
     return () => {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
@@ -192,15 +197,173 @@ const DataTableComponent = () => {
       }
       $(tableRef.current).off("click", ".delete-btn");
     };
-  }, []);
+  }, [data]); */
+
+
+    useEffect(() => {
+      window.jQuery = window.$ = $;
+    
+      const columns = [
+        {
+          title: "Photo",
+          data: "membershipPhoto",
+          render: (data, type, row) => {
+            const imageUrl = data ? `http://localhost:5100/${data}` : icon_placeholder;
+            return `<img src="${imageUrl}" alt="Membership Photo" class="rounded-img" style="width: 50px; height: 50px; object-fit: cover;">`;
+          },
+        },
+        { title: "Name", data: "membershipName" },
+        { title: "Type", data: "membershipType" },
+        { title: "Period", data: "membershipPeriod" },
+        {
+          title: "Join Fee",
+          data: "isJoinFee",
+          render: (data) => {
+            const checked = data ? "checked" : "";
+            return `
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" ${checked} style="pointer-events: none; background-color: ${data ? '#4CAF50' : '#fff'}; border-color: ${data ? '#4CAF50' : '#ccc'};">
+              </div>
+            `;
+          }
+        },
+        { title: "Charge", data: "charge" },
+        {
+          title: "Purche Date",
+          data: "isStartDateOfPurches",
+          render: (data) => {
+            const checked = data ? "checked" : "";
+            return `
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" ${checked} style="pointer-events: none; background-color: ${data ? '#4CAF50' : '#fff'}; border-color: ${data ? '#4CAF50' : '#ccc'};">
+              </div>
+            `;
+          }
+        },
+        { title: "Duration", data: "cancellationDuration" },
+        {
+          title: "Policy",
+          data: "cancellationPolicy",
+          render: (data) => {
+            const content = data ? data.replace(/"/g, '&quot;') : 'No policy available';
+            return `
+              <button class="btn btn-sm btn-outline-primary view-details-btn" data-bs-toggle="modal" data-bs-target="#policyModal" data-title="Cancellation Policy" data-content="${content}">
+                View
+              </button>
+            `;
+          }
+        },
+        {
+          title: "Description",
+          data: "membershipDescription",
+          render: (data) => {
+            const content = data ? data.replace(/"/g, '&quot;') : 'No description available';
+            return `
+              <button class="btn btn-sm btn-outline-secondary view-details-btn" data-bs-toggle="modal" data-bs-target="#policyModal" data-title="Membership Description" data-content="${content}">
+                View
+              </button>
+            `;
+          }
+        },
+      ];
+    
+
+      if (userRole === "ADMIN") {
+        columns.push(
+          {
+            title: "Edit",
+            data: null,
+            defaultContent: "",
+            render: (data, type, row) => {
+              return `<button class="btn btn-blue btn-sm edit-btn" data-id="${row.id}" data-details='${JSON.stringify(row)}'>Edit</button>`;
+            }
+          },
+          {
+            title: "Delete",
+            data: null,
+            defaultContent: "",
+            render: (data, type, row) => {
+              return `<button class="btn btn-danger btn-sm delete-btn" data-id="${row._id}">Delete</button>`;
+            }
+          }
+        );
+      }
+    
+      const dataTable = $(tableRef.current).DataTable({
+        data: data,
+        dom: "Bfrtip",
+        buttons: ["pdf", "csv", "excel", "print", "copy", "colvis"],
+        columns: columns,
+        responsive: true,
+        destroy: true,
+      });
+    
+      $(tableRef.current).on("click", ".edit-btn", function () {
+        const rowData = $(this).data("details");
+        setEditData(rowData);
+        handleEditMembershipClick(rowData);
+      });
+    
+      $(tableRef.current).on("click", ".delete-btn", function () {
+        const rowId = $(this).data("id");
+        const rowElement = $(this).closest("tr");
+    
+        Swal.fire({
+          title: "Are you sure?",
+          text: "Do you want to delete this record?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Yes, delete!",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            deleteMembership(rowId, rowElement);
+          }
+        });
+      });
+    
+      $(tableRef.current).on("click", ".view-details-btn", function () {
+        const title = $(this).data("title");
+        const content = $(this).data("content");
+    
+        $("#policyModalLabel").text(title);
+        $("#policyModalBody").html(content);
+      });
+    
+      return () => {
+        if ($.fn.DataTable.isDataTable(tableRef.current)) {
+          dataTable.destroy();
+        }
+        $(tableRef.current).off("click", ".delete-btn");
+      };
+    }, [data, userRole]); 
+    
+  const deleteMembership = async (id, rowElement) => {
+    try {
+      await axios.delete(`http://localhost:5100/api/deleteMembership/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`  
+        }
+      });
+      Swal.fire("Deleted!", "The record has been deleted.", "success");
+      const table = $(tableRef.current).DataTable();
+      table.row(rowElement).remove().draw();
+    } catch (error) {
+      console.error("Delete error:", error);
+      Swal.fire("Error", "Failed to delete record", "error");
+    }
+  };
 
   const handleAddMembershipClick = () => {
+    navigate("/membershipForm")
     setShowForm(!showForm);
   };
 
-  const handleEditMembershipClick = (membershipData) => {
+  const handleEditMembershipClick = (rowData) => {
+    console.log(rowData)
     navigate("/membershipForm", {
-      state: { membershipData },
+      state: { editData: rowData },
     });
   };
 
@@ -213,16 +376,21 @@ const DataTableComponent = () => {
         >
           <div className="card-body">
             <h4 className="header-title mb-0">Membership Managemenrt</h4>
-            <div style={{ marginBottom: "20px" }}>
-              <div className="d-flex justify-content-end">
-                <button
-                  className="btn btn-blue"
-                  onClick={handleAddMembershipClick}
-                >
-                  Add Membership
-                </button>
+
+            {/* Only for Admin */}
+            {userRole === "ADMIN" && (
+              <div style={{ marginBottom: "20px" }}>
+                <div className="d-flex justify-content-end">
+                  <button
+                    className="btn btn-blue"
+                    onClick={handleAddMembershipClick}
+                  >
+                    Add Membership
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
             <div style={{ padding: "20px", backgroundColor: "#f0f4f8" }}>
               <div
                 style={{
@@ -246,18 +414,25 @@ const DataTableComponent = () => {
         </div>
       </div>
 
-      {showForm && (
-        <div className="form-overlay">
-          <div style={{ width: "100%" }}>
-            <MemberShipForm
-              handleAddMembershipClick={handleAddMembershipClick}
-              closeModal={() => setShowForm(false)}
-            />
+      <div class="modal fade" id="policyModal" tabIndex="-1" aria-labelledby="policyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="policyModalLabel">Title Here</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="policyModalBody">
+              Content goes here...
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
           </div>
         </div>
-      )}
+      </div>
+
     </div>
   );
 };
 
-export default DataTableComponent;
+export default MembershipManagement;

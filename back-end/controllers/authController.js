@@ -3,30 +3,51 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = process.env;
 
-const registerUser = async (req, res) => {
+/* const registerUser = async (req, res) => {
     try {
         const { name, username, email, password } = req.body;
-        console.log(req.body);
-
         let user = await User.findOne({ email });
+        let existingUsername  = await User.findOne({ username });
         if (user) return res.status(400).json({ message: "User already exists" });
-
+        if (existingUsername ) return res.status(400).json({ message: "User Name already exists" });
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log("came 1", hashedPassword);
-
         user = await User.create({ 
             name,
             username, 
             email, 
             password: hashedPassword
         });
-        console.log("came 2");
+        res.status(201).json({ message: "User registered successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+}; */
+
+const registerUser = async (req, res) => {
+    try {
+        const { name, username, email, password } = req.body;
+
+        let existingUser = await User.findOne({ email });
+        let existingUsername = await User.findOne({ username });
+
+        if (existingUser) return res.status(400).json({ message: "User already exists" });
+        if (existingUsername) return res.status(400).json({ message: "Username already exists" });
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await User.create({ 
+            name,
+            username, 
+            email, 
+            password: hashedPassword
+        });
 
         res.status(201).json({ message: "User registered successfully" });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
     }
 };
+
 
 const loginUser = async (req, res) => {
     try {
@@ -39,19 +60,20 @@ const loginUser = async (req, res) => {
         if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
         
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-            expiresIn: "7d"
+            expiresIn: "10h"
         });
 
         // Set token in cookies
         res.cookie('token', token, {
-            httpOnly: true, // Ensure it is not accessible by JavaScript
-            secure: process.env.NODE_ENV === 'production', // Ensure it's sent only over HTTPS in production
-            sameSite: 'Strict', // Ensure cookie is only sent to same-origin requests
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            httpOnly: true, 
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Strict',
+            maxAge: 10 * 60 * 60 * 1000, // 10 hours
         });
 
         res.json({
             message: "Login successful",
+            token,
             user: { id: user._id, username: user.username, email: user.email, role: user.role }
         });
     } catch (error) {

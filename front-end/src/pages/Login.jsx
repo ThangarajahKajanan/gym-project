@@ -5,6 +5,7 @@ import { FaUser, FaLock } from "react-icons/fa";
 import { toast } from "react-toastify";
 import login from "../images/login.jpg";
 import "../CSS/login.css";
+import Swal from "sweetalert2";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -25,40 +26,73 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+  
     // Reset validation errors
     setValidEmail(false);
     setValidPassword(false);
-
+  
     // Basic validation
     if (!email.trim()) {
       setValidEmail(true);
-      toast.error("Please enter a valid email!");
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Email",
+        text: "Please enter your email address.",
+        confirmButtonColor: "#3085d6",
+      });
       return;
     }
+  
     if (!password.trim()) {
       setValidPassword(true);
-      toast.error("Enter a valid password!");
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Password",
+        text: "Please enter your password.",
+        confirmButtonColor: "#3085d6",
+      });
       return;
     }
-
+  
     try {
-      await axios.post(
+      const response = await axios.post(
         "http://localhost:5100/api/auth/login",
         { email, password },
         { withCredentials: true }
       );
 
-      toast.success("Login successful!");
-      navigate("/dashboard");
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('username', response.data.user.username);
+
+      console.log("teh token is",  response.data.token)
+  
+      Swal.fire({
+        icon: "success",
+        title: "Login Successful",
+        text: "You have successfully logged in!",
+        confirmButtonColor: "#3085d6",
+      }).then(() => {
+        navigate("/welcome");
+      });
+  
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Invalid email or password! Try again."
-      );
+      let message = "Something went wrong. Please try again.";
+  
+      if (error.response && error.response.data) {
+        message = error.response.data.message || message;
+      }
+  
+      Swal.fire({
+        icon: "error",
+        title: "Login Failed",
+        text: message,
+        confirmButtonColor: "#3085d6",
+      });
+  
       console.error("Error logging in:", error);
     }
   };
-
+  
   return (
     <div className="login-container">
       <div className="login-image">
