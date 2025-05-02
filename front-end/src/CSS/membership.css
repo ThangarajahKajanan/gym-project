@@ -15,15 +15,15 @@
 
 
 .rounded-img {
-  border-radius: 50%; /* This makes the image round */
-  border: 2px solid #ddd; /* Optional: adds a border around the image */
-  width: 50px; /* Ensure consistent width */
-  height: 50px; /* Ensure consistent height */
-  object-fit: cover; /* Ensure image covers the box */
-  display: block; /* Prevent any inline issues */
-  margin: 0 auto; /* Center the image horizontally */
+  border-radius: 50%; 
+  border: 2px solid #ddd; 
+  width: 50px;
+  height: 50px;
+  object-fit: cover; 
+  display: block; 
+  margin: 0 auto; 
 }
 
 table.dataTable tbody tr td {
-  vertical-align: middle; /* Align the content of the cells vertically to the center */
+  vertical-align: middle; 
 }

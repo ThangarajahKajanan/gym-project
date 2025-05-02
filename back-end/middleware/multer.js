@@ -1,18 +1,33 @@
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
-// Storage configuration
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/membership"); // folder to store uploaded images
+  destination: (req, file, cb) => {
+    let uploadPath;
+
+    if (file.fieldname === "membershipPhoto") {
+      uploadPath = path.join(__dirname, "../uploads/membership");
+    } else if (file.fieldname === "profileImage") {
+      uploadPath = path.join(__dirname, "../uploads/userProfile");
+    } else {
+      return cb(new Error("Invalid field name"), false);
+    }
+
+    // Create folder if it doesn’t exist
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+
+    cb(null, uploadPath);
   },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
+
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
+  },
 });
 
-// File filter (optional)
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image/")) {
     cb(null, true);
@@ -21,7 +36,6 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Create the multer instance
 const upload = multer({ storage, fileFilter });
 
 module.exports = upload;

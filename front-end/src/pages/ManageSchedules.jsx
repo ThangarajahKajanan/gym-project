@@ -22,6 +22,9 @@ const ManageSchedules = () => {
   const token = localStorage.getItem('token'); 
   const userRole = localStorage.getItem("userRole");
 
+  const [searchDate, setSearchDate] = useState("");
+  const [searchMode, setSearchMode] = useState(false);
+
   useEffect(() => {
     console.log("Component mounted. Fetching schedules...");
 
@@ -71,6 +74,88 @@ const ManageSchedules = () => {
     }
   };
   
+
+
+
+  // Replace the searchByDate function with this client-side version
+/*   const searchByDate = () => {
+    if (!searchDate) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Date Selected',
+        text: 'Please select a date to search',
+      });
+      return;
+    }
+
+    const searchDateObj = new Date(searchDate);
+    const searchDateString = searchDateObj.toDateString();
+
+    const filtered = schedules.filter(schedule => {
+      const scheduleDate = new Date(schedule.startDate).toDateString();
+      return scheduleDate === searchDateString;
+    });
+
+
+    setSearchMode(true);
+    setSchedules(filtered);
+
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Search Results',
+      text: `Found ${filtered.length} schedules for ${searchDateObj.toLocaleDateString()}`,
+    });
+  }; */
+
+  const searchByDate = () => {
+    if (!searchDate) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Date Selected',
+        text: 'Please select a date to search',
+      });
+      return;
+    }
+  
+    const searchDateObj = new Date(searchDate);
+    // Reset time to midnight for accurate comparison
+    searchDateObj.setHours(0, 0, 0, 0);
+  
+    const filtered = schedules.filter(schedule => {
+      const startDate = new Date(schedule.startDate);
+      const endDate = new Date(schedule.endDate);
+      
+      // Reset times to midnight for range comparison
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+  
+      // Check if search date is between start and end dates (inclusive)
+      return searchDateObj >= startDate && searchDateObj <= endDate;
+    });
+  
+    setSchedules(filtered);
+    setSearchMode(true);
+    
+    Swal.fire({
+      icon: filtered.length ? 'success' : 'info',
+      title: 'Search Results',
+      text: filtered.length 
+        ? `Found ${filtered.length} schedules that include ${searchDateObj.toLocaleDateString()}`
+        : `No schedules found for ${searchDateObj.toLocaleDateString()}`,
+    });
+  };
+    // Clear search results
+  const clearSearch = () => {
+    if(userRole === 'USER'){
+      getSchedules();
+    }else{
+      getAllSchedules();
+    }
+    setSearchDate("");
+    setSearchMode(false);
+  };
+
 
   // Filter schedules based on currentStatus
   const filteredSchedules = schedules.filter((schedule) => {
@@ -252,33 +337,65 @@ const ManageSchedules = () => {
           <div className="card-body">
             <h4 className="header-title mb-3">Schedule Management</h4>
             <div style={{ marginBottom: "20px" }}>
-              <div className="d-flex align-items-center mb-4">
-                <select
-                  onChange={(e) => setFilter(e.target.value)}
-                  className="form-select"
-                  style={{ width: "auto" }}
-                  value={filter}
-                >
-                  <option value="all">All</option>
-                  <option value="completed">Completed</option>
-                  <option value="not-completed">Not Completed</option>
-                </select>
 
+            <div className="d-flex flex-wrap justify-content-between align-items-center mb-4">
+  
+                {/* LEFT SIDE: Filter + Report + Create */}
+                <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
+                  <select
+                    onChange={(e) => setFilter(e.target.value)}
+                    className="form-select"
+                    style={{ width: "auto" }}
+                    value={filter}
+                  >
+                    <option value="all">All</option>
+                    <option value="completed">Completed</option>
+                    <option value="not-completed">Not Completed</option>
+                  </select>
+
+                  <button 
+                    onClick={generateReport} 
+                    className="btn btn-pink"
+                  >
+                    PDF Report
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/addschedule")}
+                    className="btn btn-success"
+                  >
+                    Create Schedule
+                  </button>
+                </div>
+
+                {/* RIGHT SIDE: Date + Search + Clear */}
+              <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <input
+                  type="date"
+                  className="form-control"
+                  value={searchDate}
+                  onChange={(e) => setSearchDate(e.target.value)}
+                  style={{ width: "180px" }}
+                />
                 <button 
-                  onClick={generateReport} 
-                  className="btn btn-pink ms-3"
+                  onClick={searchByDate}
+                  className="btn btn-blue"
                 >
-                  PDF Report
+                  Search Date
                 </button>
-
-                <button
-                  onClick={() => navigate("/addschedule")}
-                  className="btn btn-success ms-3"
-                >
-                  Create Schedule
-                </button>
-
+                {searchMode && (
+                  <button 
+                    onClick={clearSearch}
+                    className="btn btn-secondary"
+                  >
+                    Clear Search
+                  </button>
+                )}
               </div>
+
+            </div>
+
+              
             </div>
 
             {filteredSchedules.length === 0 ? (

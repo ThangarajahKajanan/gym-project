@@ -3,9 +3,17 @@ import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import placeholder from '../images/register.jpg'
+
+
+
 function TopBar() {
   const navigate = useNavigate();
   const userRole = localStorage.getItem("userRole");
+  const profileImage = localStorage.getItem('profileImage'); 
+
+  const imageUrl = profileImage ? `http://localhost:5100/${profileImage}` : 'assets/images/user.png'; 
+
 
   const handleLogout = async () => {
     Swal.fire({
@@ -131,39 +139,6 @@ function TopBar() {
               aria-expanded="false"
             ></a>
           </li>
-{/* 
-          <li className="dropdown notification-list">
-            <a
-              className="nav-link dropdown-toggle waves-effect waves-light arrow-none"
-              data-bs-toggle="dropdown"
-              href="#"
-              role="button"
-              aria-haspopup="false"
-              aria-expanded="false"
-            >
-              <i className="fe-bell font-22"></i>
-              <span className="badge bg-danger rounded-circle noti-icon-badge">
-                9
-              </span>
-            </a>
-            <div className="dropdown-menu dropdown-menu-end dropdown-menu-animated dropdown-lg py-0">
-              <div className="p-2 border-top-0 border-start-0 border-end-0 border-dashed border">
-                <div className="row align-items-center">
-                  <div className="col">
-                    <h6 className="m-0 font-16 fw-semibold"> Notification</h6>
-                  </div>
-                  <div className="col-auto">
-                    <a
-                      href={void 0}
-                      className="text-dark text-decoration-underline"
-                    >
-                      <small>Clear All</small>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li> */}
 
           <li className="dropdown">
             <a
@@ -175,9 +150,12 @@ function TopBar() {
               aria-expanded="false"
             >
               <img
-                src="assets/images/user.png"
+                src={imageUrl}
                 alt="user-image"
-                className="rounded-circle"
+                className="rounded-circle overflow-hidden" 
+                style={{ width: '50px', height: '50px', borderRadius: '50%' }}
+               height="40"
+              width="40"
               />
             </a>
             <div className="dropdown-menu dropdown-menu-end profile-dropdown ">

@@ -1,8 +1,11 @@
 const express = require("express");
 const { registerUser, loginUser, verifyToken } = require("../controllers/authController");
 const router = express.Router();
+const upload = require("../middleware/multer"); 
 
-router.post("/register", registerUser);
+
+
+router.post("/register", upload.single("profileImage"), registerUser);
 router.post("/login", loginUser);
 router.get('/verify-token', verifyToken, (req, res) => {
     res.json({

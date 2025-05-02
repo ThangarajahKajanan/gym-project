@@ -52,7 +52,30 @@ const TrainerManagement = () => {
     const dataTable = $(tableRef.current).DataTable({
       data: data,
       dom: "Bfrtip",
-      buttons: [ "pdf", "csv", "excel", "print", "copy", "colvis"],
+      buttons: [
+        {
+          extend: "pdf",
+          exportOptions: { columns: ":not(:nth-last-child(-n+2))" } // exclude last 2 columns
+        },
+        {
+          extend: "csv",
+          exportOptions: { columns: ":not(:nth-last-child(-n+2))" }
+        },
+        {
+          extend: "excel",
+          exportOptions: { columns: ":not(:nth-last-child(-n+2))" }
+        },
+        {
+          extend: "print",
+          exportOptions: { columns: ":not(:nth-last-child(-n+2))" }
+        },
+        {
+          extend: "copy",
+          exportOptions: { columns: ":not(:nth-last-child(-n+2))" }
+        },
+        "colvis"
+      ],
+      
       columns: [
         { title: "Email", data: "trainerEmail" },
         { title: "Name", data: "trainerName" },

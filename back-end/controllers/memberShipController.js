@@ -24,6 +24,13 @@ const createMemberShip = async (req, res) => {
             return res.status(400).json({ message: "Fill all the required fields" });
         }
 
+        // Check if the membership name already exists
+        const existingMembership = await MemberShip.findOne({ membershipName });
+
+        if (existingMembership) {
+            return res.status(400).json({ message: "A membership with this name already exists" });
+        }
+
         const response = await MemberShip.create({
             membershipName, membershipDescription, membershipType, membershipPeriod, isJoinFee
             , charge, isStartDateOfPurches, cancellationPolicy, cancellationDuration,
@@ -72,6 +79,18 @@ const updateMembership = async (req, res) => {
       if (!existingMembership) {
           return res.status(404).json({ message: "Membership not found" });
       }
+
+
+            // Check if the membership name already exists (excluding the current membership)
+            const membershipWithSameName = await MemberShip.findOne({
+              membershipName,
+              _id: { $ne: id } // Exclude the current membership from the check
+          });
+    
+          if (membershipWithSameName) {
+              return res.status(400).json({ message: "A membership with this name already exists" });
+          }
+      
 
       // Determine photo path
       let membershipPhoto = existingPhotoPath || existingMembership.membershipPhoto;

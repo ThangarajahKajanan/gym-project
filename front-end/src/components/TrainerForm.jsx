@@ -61,46 +61,79 @@ const TrainerForm = () => {
     };
 
     const validateForm = () => {
-        const newErrors = {
+        const emptyFields = {
             trainerEmail: formData.trainerEmail.trim() === "",
             trainerName: formData.trainerName.trim() === "",
-            trainerAge: formData.trainerAge === "" || isNaN(formData.trainerAge),
+            trainerAge: formData.trainerAge === "",
             trainerLocation: formData.trainerLocation.trim() === "",
-            trainerExperience: formData.trainerExperience === "" || isNaN(formData.trainerExperience),
+            trainerExperience: formData.trainerExperience === "",
         };
-
-        // Validate trainerExperience range (0 - 80)
+    
+        // If any field is empty, return immediately
+        if (Object.values(emptyFields).some((field) => field)) {
+            return { ...emptyFields, hasEmptyFields: true };
+        }
+    
+        // No empty fields, now validate
+        const newErrors = {
+            trainerEmail: false,
+            trainerName: false,
+            trainerAge: false,
+            trainerLocation: false,
+            trainerExperience: false,
+        };
+    
+        // Validate email format
+        if (!formData.trainerEmail.trim().toLowerCase().endsWith("@gmail.com")) {
+            newErrors.trainerEmail = true;
+        }
+    
+        // Validate experience (0-80)
         const experience = parseInt(formData.trainerExperience);
-        if (
-            formData.trainerExperience &&
-            (isNaN(experience) || experience < 0 || experience > 80)
-        ) {
+        if (isNaN(experience) || experience < 0 || experience > 80) {
             newErrors.trainerExperience = true;
         }
-
+    
+        // Validate age (20-80)
         const age = parseInt(formData.trainerAge);
         if (isNaN(age) || age < 20 || age > 80) {
             newErrors.trainerAge = true;
         }
-        
-
-        setErrors(newErrors);
-        return !Object.values(newErrors).some((error) => error);
+    
+        return newErrors;
     };
-
+    
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
 
-        if (!validateForm()) {
-            let errorMessage = "Please fill all required fields!";
-            
-            if (errors.trainerExperience) {
+        const newErrors = validateForm();
+        const hasEmptyFields = newErrors.hasEmptyFields;
+        const isValid = !Object.values(newErrors).some((error) => error);
+    
+        if (hasEmptyFields) {
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: "All fields are required!",
+                confirmButtonColor: "#3085d6",
+            });
+            setIsLoading(false);
+            return;
+        }
+    
+        if (!isValid) {
+            let errorMessage = "Invalid input. Please correct the highlighted fields.";
+    
+            if (newErrors.trainerEmail) {
+                errorMessage = "Email must be a valid Gmail address (must end with @gmail.com)";
+            } else if (newErrors.trainerAge) {
+                errorMessage = "Age must be between 20 and 80";
+            } else if (newErrors.trainerExperience) {
                 errorMessage = "Experience must be between 0 and 80";
-            } else if (errors.trainerAge) {
-                errorMessage = "Age must be between 20 and 80 ";
             }
-
+    
             Swal.fire({
                 icon: "error",
                 title: "Oops...",
@@ -110,7 +143,7 @@ const TrainerForm = () => {
             setIsLoading(false);
             return;
         }
-
+    
         try {
             const endpoint = isUpdated
                 ? `http://localhost:5100/api/updateTrainer/${editData._id}`
@@ -269,8 +302,7 @@ const TrainerForm = () => {
                                         )}
                                     </div>
 
-                                    {/* Trainer Age */}
-                                    <div className="mb-3">
+{/*                                     <div className="mb-3">
                                         <label htmlFor="trainerAge" className="form-label">
                                             Trainer Age *
                                         </label>
@@ -289,8 +321,6 @@ const TrainerForm = () => {
                                             </div>
                                         )}
                                     </div>
-
-                                    {/* Trainer Experience */}
                                     <div className="mb-3">
                                         <label htmlFor="trainerExperience" className="form-label">
                                             Trainer Experience *
@@ -310,6 +340,59 @@ const TrainerForm = () => {
                                             </div>
                                         )}
                                     </div>
+ */}
+
+ {/* Trainer Age */}
+<div className="mb-3">
+  <label htmlFor="trainerAge" className="form-label">
+    Trainer Age *
+  </label>
+  <input
+    type="text"  // <-- Change to text
+    className="form-control"
+    id="trainerAge"
+    name="trainerAge"
+    placeholder="Enter age"
+    value={formData.trainerAge}
+    onChange={(e) => {
+      const value = e.target.value;
+      if (/^\d*$/.test(value)) {  // Only allow digits (0-9)
+        handleChange(e);
+      }
+    }}
+  />
+  {errors.trainerAge && (
+    <div className="text-danger small mt-1">
+      Trainer Age must be between 20 and 80
+    </div>
+  )}
+</div>
+
+{/* Trainer Experience */}
+<div className="mb-3">
+  <label htmlFor="trainerExperience" className="form-label">
+    Trainer Experience *
+  </label>
+  <input
+    type="text"  // <-- Change to text
+    className="form-control"
+    id="trainerExperience"
+    name="trainerExperience"
+    placeholder="Enter experience"
+    value={formData.trainerExperience}
+    onChange={(e) => {
+      const value = e.target.value;
+      if (/^\d*$/.test(value)) {  // Only allow digits (0-9)
+        handleChange(e);
+      }
+    }}
+  />
+  {errors.trainerExperience && (
+    <div className="text-danger small mt-1">
+      Trainer experience must be between 0 and 80
+    </div>
+  )}
+</div>
 
                                     {/* Buttons */}
                                     <button

@@ -3,6 +3,10 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = process.env;
 
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
 /* const registerUser = async (req, res) => {
     try {
         const { name, username, email, password } = req.body;
@@ -26,6 +30,14 @@ const { JWT_SECRET } = process.env;
 const registerUser = async (req, res) => {
     try {
         const { name, username, email, password } = req.body;
+        let profileImage;
+
+        if (req.file) {
+            profileImage = req.file.path
+                .replace(path.resolve(__dirname, "..") + path.sep, "")
+                .replace(/\\/g, "/");
+        }
+          
 
         let existingUser = await User.findOne({ email });
         let existingUsername = await User.findOne({ username });
@@ -39,7 +51,8 @@ const registerUser = async (req, res) => {
             name,
             username, 
             email, 
-            password: hashedPassword
+            password: hashedPassword,
+            profileImage
         });
 
         res.status(201).json({ message: "User registered successfully" });
@@ -71,10 +84,12 @@ const loginUser = async (req, res) => {
             maxAge: 10 * 60 * 60 * 1000, // 10 hours
         });
 
+        console.log("image profile",  user.profileImage)
+
         res.json({
             message: "Login successful",
             token,
-            user: { id: user._id, username: user.username, email: user.email, role: user.role }
+            user: { id: user._id, username: user.username, email: user.email, role: user.role, profileImage: user.profileImage }
         });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });

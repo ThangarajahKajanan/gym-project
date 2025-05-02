@@ -52,7 +52,40 @@ const UserManagement = () => {
     const dataTable = $(tableRef.current).DataTable({
       data: data,
       dom: "Bfrtip",
-      buttons: [ "pdf", "csv", "excel", "print", "copy", "colvis"],
+      buttons: [
+        {
+          extend: "pdf",
+          exportOptions: {
+            columns: ":not(:last-child)", // exclude the last column (Delete button)
+          },
+        },
+        {
+          extend: "csv",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+        {
+          extend: "excel",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+        {
+          extend: "print",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+        {
+          extend: "copy",
+          exportOptions: {
+            columns: ":not(:last-child)",
+          },
+        },
+        "colvis" // this one is for column visibility, no need exportOptions
+      ],
+      
       columns: [
         { title: "Id", data: "_id" },
         { title: "Name", data: "name" },

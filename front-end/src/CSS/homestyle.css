@@ -940,3 +940,112 @@ flex: 0 0 100%;
 }
 
 
+
+
+.schedule {
+	background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+	padding: 100px 0;
+	color: #f1f1f1;
+	overflow: hidden;
+  }
+  
+
+  
+
+  
+  .box {
+	flex: 1 1 500px;
+  }
+  
+  .section-title {
+	font-size: 42px;
+	font-weight: 800;
+	margin-bottom: 20px;
+	color: #00ffe7;
+	text-shadow: 0 0 10px #00ffe7;
+  }
+  
+  .section-description {
+	font-size: 18px;
+	line-height: 1.7;
+	margin-bottom: 30px;
+  }
+  
+  .highlight {
+	font-weight: bold;
+	color: #ffffff;
+  }
+  
+  .schedule-image {
+	width: 100%;
+	border-radius: 20px;
+	margin-top: 20px;
+	box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+	transition: transform 0.4s;
+  }
+  
+  .schedule-image:hover {
+	transform: scale(1.05);
+  }
+  
+  .glass-card {
+	background: rgba(255, 255, 255, 0.1);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	border-radius: 20px;
+	backdrop-filter: blur(12px);
+	box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+	padding: 30px;
+  }
+  
+  .schedule-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 20px;
+  }
+  
+  .schedule-table th, .schedule-table td {
+	padding: 15px 20px;
+	text-align: left;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .schedule-table thead th {
+	background: rgb(90, 144, 180);
+	color: #000000;
+	font-size: 18px;
+	font-weight: normal;
+  }
+  
+  .schedule-row {
+	transition: background 0.3s, transform 0.3s;
+  }
+  
+  .schedule-row:hover {
+	background: rgba(255, 255, 255, 0.2);
+	transform: scale(1.02);
+  }
+  
+  .schedule-table i {
+	color: #00ffe7;
+	margin-right: 8px;
+  }
+  
+  .cta {
+	text-align: center;
+	margin-top: 20px;
+  }
+  
+  .btn-primary {
+	display: inline-block;
+	background-color: #4facfe; /* fallback color */
+	background-image: linear-gradient(90deg, #667eea, #764ba2);
+	color: #fff;
+	text-decoration: none;
+	transition: background 0.4s, background-image 0.4s;
+	border: none;
+}
+
+.btn-primary:hover {
+	background-color: #667eea; /* fallback color on hover */
+	background-image: linear-gradient(90deg, #7d91e9, #764ba2);
+}

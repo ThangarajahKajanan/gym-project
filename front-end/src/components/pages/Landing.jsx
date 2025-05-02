@@ -302,63 +302,58 @@ const GymWebsite = () => {
         </div>
       </section>
       {/* End Start Today */}
+    <section className="schedule" id="schedule">
+      <div className="container">
+        <div className="content">
+          
+          <div className="box text wow fadeInLeft">
+            <h2 className="section-title">🗓️ Classes Schedule</h2>
+            <p className="section-description"  style={{ color: "#ffffff" }}>
+              <span className="highlight">Ready to transform your body?</span><br />
+              Explore our <strong>schedule</strong> to find the perfect class! Whether you’re aiming for strength, flexibility, or endurance, our expert trainers are here to support you. 🌟
+            </p>
+            <img src={schedule1} alt="Schedule" className="schedule-image" />
+          </div>
 
-      {/* Start Schedule */}
-      <section className="schedule" id="schedule">
-        <div className="container">
-          <div className="content">
-            <div className="box text wow slideInLeft">
-              <h2>Classes Schedule</h2>
-              <p>
-              Explore our Classes Schedule to find the perfect fit for your fitness goals. We offer a wide range of classes, including strength training, flexibility workouts, and cardiovascular sessions, all designed to enhance your fitness journey. Whether you're a beginner or advanced, our experienced trainers will guide you every step of the way. Start your fitness journey with us today!
-              </p>
-              <img src={schedule1} alt="schedule" />
-            </div>
-            <div className="box timing wow slideInRight">
-              <table className="table">
+          <div className="box timing wow fadeInRight">
+            <div className="glass-card">
+              <table className="schedule-table">
+                <thead>
+                  <tr>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Activity</th>
+                    <th>Room</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  <tr>
-                    <td className="day" style={{color: "black"}}>Monday</td>
-                    <td><strong>9:00 AM</strong></td>
-                    <td>Body Building <br/> 9:00 to 10:00 AM</td>
-                    <td>Room No:210</td>
-                  </tr>
-                  <tr>
-                    <td className="day" style={{color: "black"}}>Tuesday</td>
-                    <td><strong>9:00 AM</strong></td>
-                    <td>Body Building <br/> 9:00 to 10:00 AM</td>
-                    <td>Room No:211</td>
-                  </tr>
-                  <tr>
-                    <td className="day" style={{color: "black"}}>Wednesday</td>
-                    <td><strong>9:00 AM</strong></td>
-                    <td>Body Building <br/> 9:00 to 10:00 AM</td>
-                    <td>Room No:212</td>
-                  </tr>
-                  <tr>
-                    <td className="day" style={{color: "black"}}>Thursday</td>
-                    <td><strong>9:00 AM</strong></td>
-                    <td>Body Building <br/> 9:00 to 10:00 AM</td>
-                    <td>Room No:215</td>
-                  </tr>
-                  <tr>
-                    <td className="day" style={{color: "black"}}>Friday</td>
-                    <td><strong>9:00 AM</strong></td>
-                    <td>Body Building <br/> 9:00 to 10:00 AM</td>
-                    <td>Room No:220</td>
-                  </tr>
-                  <tr>
-                    <td className="day" style={{color: "black"}}>Saturday</td>
-                    <td><strong>9:00 AM</strong></td>
-                    <td>Body Building <br/> 9:00 to 10:00 AM</td>
-                    <td>Room No:212</td>
-                  </tr>
+                  {[
+                    { day: "Monday", room: "210" },
+                    { day: "Tuesday", room: "211" },
+                    { day: "Wednesday", room: "212" },
+                    { day: "Thursday", room: "215" },
+                    { day: "Friday", room: "220" },
+                    { day: "Saturday", room: "212" },
+                  ].map(({ day, room }, idx) => (
+                    <tr key={idx} className="schedule-row">
+                      <td><i className="fas fa-calendar-day"></i> {day}</td>
+                      <td><strong>9:00 AM</strong></td>
+                      <td>🏋️ Body Building <br />9:00 - 10:00 AM</td>
+                      <td>Room {room}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
+              
+              <div className="cta">
+                <a href="#contact" className="btn-primary">Book a Class Now 🚀</a>
+              </div>
             </div>
           </div>
+
         </div>
-      </section>
+      </div>
+    </section>
       {/* End Schedule */}
 
       {/* Start Gallery */}

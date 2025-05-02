@@ -1,0 +1,184 @@
+.position-relative {
+    position: relative;
+  }
+  
+  .password-eye-icon {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d; /* optional: gray color to match input */
+  }
+/* In register.css */
+.register-banner {
+    width: 150px;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+    
+
+
+  /* Main Container */
+.register-container {
+    padding: 0;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  /* Image Section */
+  .register-image-container {
+    width: 100%;
+    height: 100%;
+    background-image: url('../images/register.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  
+  .register-image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 2rem;
+  }
+  
+  .register-image-content h1 {
+    font-size: 2.5rem;
+    color: rgb(194, 188, 188);
+    font-weight: bold;
+    margin-bottom: 1rem;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+
+
+    background-color: rgba(12, 13, 58, 0.7); 
+    padding: 0.5rem 1rem;  
+    border-radius: 8px;    
+    display: inline-block;
+  }
+  
+  .register-image-content p {
+    font-size: 1.2rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  }
+  
+  /* Form Section */
+  .register-form-container {
+    width: 100%;
+    max-width: 500px;
+    padding: 2rem;
+    border-radius: 15px;
+    background-color: white;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Profile Image */
+  .profile-image-container {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #6c63ff;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .profile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+
+  .form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  
+  /* Password Eye Icon */
+  .password-eye-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 1.1rem;
+  }
+  
+  /* Terms Checkbox */
+  .form-check-input {
+    width: 1.1em;
+    height: 1.1em;
+    margin-top: 0.2em;
+  }
+  
+  .form-check-label {
+    margin-left: 0.5rem;
+  }
+  
+  .form-check-input:checked {
+    background-color: #6c63ff;
+    border-color: #6c63ff;
+  }
+  
+  /* Buttons */
+  .register-submit-btn {
+    background-color: #6c63ff;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+    font-size: 1rem;
+    margin-top: 1rem;
+  }
+  
+
+  
+  /* Links */
+  .register-login-link {
+    color: #6c63ff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  
+  .register-login-link:hover {
+    color: #5a52d6;
+    text-decoration: underline;
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .register-form-container {
+      margin: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .register-image-content h1 {
+      font-size: 2rem;
+    }
+    
+    .register-image-content p {
+      font-size: 1rem;
+    }
+  }
+  
+  /* Animation */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .register-form-container {
+    animation: fadeIn 0.5s ease-out;
+  }

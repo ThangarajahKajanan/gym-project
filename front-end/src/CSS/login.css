@@ -93,6 +93,16 @@
     background: linear-gradient(135deg, #2575fc, #6a11cb);
   }
   
+
+  .password-eye-icon {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    cursor: pointer;
+  }
+
+  
   /* Responsive Design */
   @media (max-width: 768px) {
     .login-container {

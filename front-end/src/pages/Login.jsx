@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaUser, FaLock } from "react-icons/fa";
+import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa"; // Import eye icons
 import { toast } from "react-toastify";
 import login from "../images/login.jpg";
 import "../CSS/login.css";
@@ -13,6 +13,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [validEmail, setValidEmail] = useState(false);
   const [validPassword, setValidPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
 
   // Verify token on mount
   useEffect(() => {
@@ -63,8 +64,10 @@ const Login = () => {
 
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('username', response.data.user.username);
+      localStorage.setItem('profileImage', response.data.user.profileImage);
 
-      console.log("teh token is",  response.data.token)
+  
+
   
       Swal.fire({
         icon: "success",
@@ -137,8 +140,9 @@ const Login = () => {
               <label>Password</label>
               <div className="input-container">
                 {/*    <FaLock className="input-icon" /> */}
+                
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"} // Toggle password visibility
                   className={`form-control ${
                     validPassword ? "is-invalid" : ""
                   }`}
@@ -146,6 +150,12 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+               <span
+                  className="password-eye-icon"
+                  onClick={() => setShowPassword(!showPassword)} // Toggle showPassword state
+                >
+                   {showPassword ? <FaEye /> : <FaEyeSlash />}
+                </span>
               </div>
               {validPassword && (
                 <div className="invalid-feedback">Enter the password!</div>
@@ -157,12 +167,7 @@ const Login = () => {
               Login Now
             </button>
 
-            {/* Forgot Password */}
-            <div className="text-center mt-3">
-              <a href="#!" className="text-muted">
-                Forgot password?
-              </a>
-            </div>
+
 
             {/* Register Link */}
             <div className="text-center mt-4">

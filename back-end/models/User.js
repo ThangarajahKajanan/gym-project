@@ -10,6 +10,10 @@ const UserSchema = new mongoose.Schema({
         enum: ["USER", "ADMIN"],  
         default: "USER" 
     },
+    profileImage: {
+        type: String, 
+        required: false
+      },
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", UserSchema);

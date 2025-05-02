@@ -151,6 +151,8 @@ const MembershipForm = () => {
 
         const formDataWithFile = new FormData();
 
+        console.log("the forms data ", formData)
+
         // Append form fields
         Object.keys(formData).forEach((key) => {
             if (key !== "membershipPhoto" || membershipPhoto || !existingPhotoPath) {
@@ -194,12 +196,22 @@ const MembershipForm = () => {
 
         } catch (error) {
             console.log("Error:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: `An error occurred while ${isUpdated ? "updating" : "creating"} membership`,
-                confirmButtonColor: "#3085d6",
-            });
+
+            if (error.response && error.response.status === 400 && error.response.data.message === "A membership with this name already exists") {
+                Swal.fire({
+                    icon: "error",
+                    title: "Oops...",
+                    text: "A membership with this name already exists.",
+                    confirmButtonColor: "#3085d6",
+                });
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: `An error occurred while ${isUpdated ? "updating" : "creating"} membership`,
+                    confirmButtonColor: "#3085d6",
+                });
+            }
         } finally {
             setIsLoading(false);
         }
@@ -334,89 +346,56 @@ const MembershipForm = () => {
                                         )}
                                     </div>
 
-                                    {/* Membership Photo */}
-{/*                                     <div className="mb-3">
-                                        <label htmlFor="membershipPhoto" className="form-label">
-                                            Upload Membership Photo
-                                        </label>
-                                        {existingPhotoPath && !membershipPhoto && (
-                                            <div className="mb-2">
-                                                <p>Current Photo:</p>
-                                                <img 
-                                                    src={`http://localhost:5100/${existingPhotoPath}`} 
-                                                    alt="Current membership" 
-                                                    style={{ maxWidth: "200px", maxHeight: "200px" }}
-                                                />
-                                            </div>
-                                        )} 
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            className="form-control"
-                                            id="membershipPhoto"
-                                            name="membershipPhoto"
-                                            onChange={handleFileChange}
+                                    <div className="mb-3">
+                                    <label htmlFor="membershipPhoto" className="form-label">
+                                        Upload Membership Photo
+                                    </label>
+
+                                    {/* Display current or selected photo */}
+                                    {membershipPhoto ? (
+                                        <div className="mb-2">
+                                        <p>New Photo Preview:</p>
+                                        <img
+                                            src={URL.createObjectURL(membershipPhoto)}
+                                            alt="New membership"
+                                            style={{ maxWidth: "120px", maxHeight: "100px" }}
                                         />
-                                        {membershipPhoto && (
-                                            <div className="mt-2">
-                                                <p>New Photo Selected: {membershipPhoto.name}</p>
-                                            </div>
-                                        )}
+                                        </div>
+                                    ) : existingPhotoPath ? (
+                                        <div className="mb-2">
+                                        <p>Current Photo:</p>
+                                        <img
+                                            src={`http://localhost:5100/${existingPhotoPath}`}
+                                            alt="Current membership"
+                                            style={{ maxWidth: "120px", maxHeight: "100px" }}
+                                        />
+                                        </div>
+                                    ) : (
+                                        <div className="mb-2">
+                                        <p>No photo uploaded.</p>
+                                        <img
+                                    src={icon_placeholder}
+                                            alt="Placeholder"
+                                            style={{ maxWidth: "120px", maxHeight: "100px" }}
+                                        />
+                                        </div>
+                                    )}
+
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="form-control"
+                                        id="membershipPhoto"
+                                        name="membershipPhoto"
+                                        onChange={handleFileChange}
+                                    />
+
+                                    {membershipPhoto && (
+                                        <div className="mt-2">
+                                        <p>New Photo Selected: {membershipPhoto.name}</p>
+                                        </div>
+                                    )}
                                     </div>
- */}
-
-
-
-<div className="mb-3">
-  <label htmlFor="membershipPhoto" className="form-label">
-    Upload Membership Photo
-  </label>
-
-  {/* Display current or selected photo */}
-  {membershipPhoto ? (
-    <div className="mb-2">
-      <p>New Photo Preview:</p>
-      <img
-        src={URL.createObjectURL(membershipPhoto)}
-        alt="New membership"
-        style={{ maxWidth: "120px", maxHeight: "100px" }}
-      />
-    </div>
-  ) : existingPhotoPath ? (
-    <div className="mb-2">
-      <p>Current Photo:</p>
-      <img
-        src={`http://localhost:5100/${existingPhotoPath}`}
-        alt="Current membership"
-        style={{ maxWidth: "120px", maxHeight: "100px" }}
-      />
-    </div>
-  ) : (
-    <div className="mb-2">
-      <p>No photo uploaded.</p>
-      <img
-  src={icon_placeholder}
-        alt="Placeholder"
-        style={{ maxWidth: "120px", maxHeight: "100px" }}
-      />
-    </div>
-  )}
-
-  <input
-    type="file"
-    accept="image/*"
-    className="form-control"
-    id="membershipPhoto"
-    name="membershipPhoto"
-    onChange={handleFileChange}
-  />
-
-  {membershipPhoto && (
-    <div className="mt-2">
-      <p>New Photo Selected: {membershipPhoto.name}</p>
-    </div>
-  )}
-</div>
 
 
 
@@ -427,14 +406,22 @@ const MembershipForm = () => {
                                             Membership Period (days) *
                                         </label>
                                         <input
-                                            type="number"
+                                            type="text"
                                             className="form-control"
                                             id="membershipPeriod"
                                             name="membershipPeriod"
                                             placeholder="Duration in days (30-3600)"
-                                            min="1"
+                                            min="30"
+                                            max="3600"
                                             value={formData.membershipPeriod}
-                                            onChange={handleChange}
+                                            onChange={(e) => {
+                                            const value = e.target.value;
+                                            // Allow only numbers and update the state if valid
+                                            if (/^\d*$/.test(value)) {
+                                                handleChange(e);
+                                            }
+                                        }}
+                                          
                                         />
                                         {errors.membershipPeriod && (
                                             <div className="text-danger small mt-1">
@@ -475,14 +462,20 @@ const MembershipForm = () => {
                                             Charge (₹) *
                                         </label>
                                         <input
-                                            type="number"
+                                            type="text"
                                             className="form-control"
                                             id="charge"
                                             name="charge"
                                             placeholder="Enter price (500-25000)"
                                             min="0"
                                             value={formData.charge}
-                                            onChange={handleChange}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                // Allow only numbers and update the state if valid
+                                                if (/^\d*$/.test(value)) {
+                                                    handleChange(e);  // Call your handleChange function to update the state
+                                                }
+                                            }}
                                         />
                                         {errors.charge && (
                                             <div className="text-danger small mt-1">

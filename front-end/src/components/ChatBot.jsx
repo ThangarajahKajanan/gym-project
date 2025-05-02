@@ -1,18 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaPaperPlane } from "react-icons/fa";
-import Swal from "sweetalert2"; 
-import { Link } from 'react-router-dom';
+import Swal from "sweetalert2";
+import { Link } from "react-router-dom";
+import "../CSS/gymBot.css";
+import img1 from "../images/gym-profile.jpg";
+import img2 from "../images/bg2.jpg";
+import img3 from "../images/bg3.jpg";
+import { ClipLoader } from "react-spinners";
 
+const backgrounds = [img3, img2, img1];
 
 export default function ChatBot() {
+  const [isLoading, setIsLoading] = useState(true); // Add this
+  const [loading, setLoading] = useState(false);
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [recommendation, setRecommendation] = useState(null);
+  const [bgIndex, setBgIndex] = useState(0);
   const [messages, setMessages] = useState([
     {
       text: "Hi! Tell me about yourself, and I'll recommend a fitness type.",
       sender: "bot",
     },
   ]);
-
   const [formData, setFormData] = useState({
     Sex: "",
     Age: "",
@@ -25,12 +35,45 @@ export default function ChatBot() {
     FitnessGoal: "",
   });
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBgIndex((prevIndex) => (prevIndex + 1) % backgrounds.length);
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          background: "linear-gradient(135deg, #1a1a2e, #16213e)",
+          color: "white",
+        }}
+      >
+        <ClipLoader color="#36d7b7" size={50} />
+        <h3 style={{ marginLeft: "10px" }}>Loading GymBot...</h3>
+      </div>
+    );
+  }
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async () => {
-
+    if (loading) return;
     if (
       !formData.Sex ||
       !formData.Age ||
@@ -42,7 +85,7 @@ export default function ChatBot() {
       Swal.fire("Missing Information", "Please fill in all fields.", "warning");
       return;
     }
-    // Validation for Age, Weight, and Height
+
     if (formData.Age < 18 || formData.Age > 100) {
       Swal.fire(
         "Invalid Age",
@@ -62,7 +105,6 @@ export default function ChatBot() {
     }
 
     if (formData.Height < 0.5 || formData.Height > 2.5) {
-      // Assuming height range from 0.5m to 2.5m
       Swal.fire(
         "Invalid Height",
         "Please enter a height between 0.5m and 2.5m.",
@@ -71,64 +113,96 @@ export default function ChatBot() {
       return;
     }
 
-    // Clear previous results when submitting again
-    setMessages([
+    // First filter out any previous "Finding..." or recommendation messages
+    setMessages((prev) => [
+      ...prev.filter(
+        (msg) =>
+          msg.text !== "Finding the best fitness type for you..." &&
+          !msg.text.includes("Your fitness recommendation is ready!")
+      ),
       { text: "Finding the best fitness type for you...", sender: "bot" },
     ]);
 
-    // Convert to proper JSON structure
-    const requestData = {
-      ...formData,
-      Age: Number(formData.Age),
-      Height: Number(formData.Height),
-      Weight: Number(formData.Weight),
-      BMI: parseFloat((formData.Weight / formData.Height ** 2).toFixed(2)), // BMI Calculation
-      Hypertension: formData.Hypertension || "No",
-      Diabetes: formData.Diabetes || "No",
-    };
+    setMessages([
+      ...messages,
+      { text: "Finding the best fitness type for you...", sender: "bot" },
+    ]);
+    setLoading(true);
 
-    try {
-      console.log(requestData);
-      const response = await axios.post(
-        "http://127.0.0.1:5001/predict",
-        requestData
-      );
-      console.log("Response:", response.data); // Debugging
+    setTimeout(async () => {
+      const requestData = {
+        ...formData,
+        Age: Number(formData.Age),
+        Height: Number(formData.Height),
+        Weight: Number(formData.Weight),
+        BMI: parseFloat((formData.Weight / formData.Height ** 2).toFixed(2)),
+        Hypertension: formData.Hypertension || "No",
+        Diabetes: formData.Diabetes || "No",
+      };
 
-      // Get the response data (fitness type, exercises, and diet)
-      const { fitness_type, exercises, diet } = response.data;
+      try {
+        const response = await axios.post(
+          "http://127.0.0.1:5001/predict",
+          requestData
+        );
+        const { fitness_type, exercises, diet } = response.data;
 
-      setMessages((prev) => [
-        ...prev,
-        { text: `Based on your data, I recommend:`, sender: "bot" },
-        { text: `Fitness Type: ${fitness_type}`, sender: "bot" },
-        { text: `Exercises: ${exercises}`, sender: "bot" },
-        { text: `Diet: ${diet}`, sender: "bot" },
-      ]);
+        // Set the recommendation data for the modal
+        setRecommendation({
+          fitnessType: fitness_type,
+          exercises: exercises.split(","),
+          diet: diet.split(";"),
+        });
 
-      // Clear form data after submission
-      setFormData({
-        Sex: "",
-        Age: "",
-        Height: "",
-        Weight: "",
-        Hypertension: "",
-        Diabetes: "",
-        BMI: "",
-        Level: "",
-        FitnessGoal: "",
-      });
-    } catch (error) {
-      console.error("Error:", error);
-      setMessages([
-        ...messages,
-        { text: "Something went wrong! Try again.", sender: "bot" },
-      ]);
-    }
+        // Open the modal
+        setModalOpen(true);
+
+        // Clear form data
+        setFormData({
+          Sex: "",
+          Age: "",
+          Height: "",
+          Weight: "",
+          Hypertension: "",
+          Diabetes: "",
+          BMI: "",
+          Level: "",
+          FitnessGoal: "",
+        });
+
+        // Add a message that recommendation is ready
+        /*         setMessages(prev => [
+          ...prev.filter(msg => msg.text !== "Finding the best fitness type for you..."),
+          { text: "Your fitness recommendation is ready! Click 'Show Recommendation' to view it.", sender: "bot" }
+        ]);
+ */
+        // Filter out any previous messages and add the new one
+        setMessages((prev) => [
+          ...prev.filter(
+            (msg) =>
+              msg.text !== "Finding the best fitness type for you..." &&
+              !msg.text.includes("Your fitness recommendation is ready!")
+          ),
+          {
+            text: "Your fitness recommendation is ready! Click 'Show Recommendation' to view it.",
+            sender: "bot",
+          },
+        ]);
+      } catch (error) {
+        console.error("Error:", error);
+        setMessages((prev) => [
+          ...prev.filter(
+            (msg) => msg.text !== "Finding the best fitness type for you..."
+          ),
+          { text: "Something went wrong! Try again.", sender: "bot" },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    }, 2000);
   };
 
   const handleClear = () => {
-    // Clear all form fields and messages
     setFormData({
       Sex: "",
       Age: "",
@@ -146,139 +220,200 @@ export default function ChatBot() {
         sender: "bot",
       },
     ]);
+    setRecommendation(null);
   };
 
   return (
-    <div className="content" style={{ overflowY: "auto", height: "100vh" }}>
-      <div className="container-fluid" style={{ marginTop: "20px" }}>
-        <div
-          className="card"
-          style={{ boxShadow: "rgba(0, 0, 0, 0.75) 0px 0px 4px -1px" }}
-        >
-          <div className="card-body">
-            <h4 className="header-title mb-0"> </h4>
-            <div style={{ marginBottom: "20px" }}>
-              <div className="d-flex justify-content-end">
-              <Link to="/welcome">
-                <button className="btn btn-blue">Dashboard</button>
-              </Link>
-              </div>
-            </div>
+    <div
+      className="chatbot-bg"
+      style={{
+        backgroundImage: `url(${backgrounds[bgIndex]})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "30px",
+        transition: "background-image 1s ease-in-out",
+      }}
+    >
+      <div className="glass-card">
+        <div className="mb-4 chat-messages">
+          {messages.map((msg, index) => (
             <div
-              style={{
-                padding: "20px",
-                backgroundColor: "#f0f4f8",
-              }}
+              key={index}
+              className={`message ${
+                msg.sender === "bot" ? "bot-message" : "user-message"
+              }`}
             >
-              <div
-                style={{
-                  backgroundColor: "#ffffff",
-                  padding: "60px",
-                  borderRadius: "10px",
-                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                  marginBottom: "20px",
-                }}
-              >
-                <div className="mb-4">
-                  {messages.map((msg, index) => (
-                    <div
-                      key={index}
-                      className={`p-2 mb-2 rounded ${
-                     msg.sender === "bot" ? "bg-primary bg-opacity-25 text-dark" : "bg-secondary bg-opacity-25 text-dark"
-                      }`}
-                    >
-                      {msg.text}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="form-group">
-                  <select
-                    name="Sex"
-                    onChange={handleChange}
-                    className="form-control mb-3"
-                    value={formData.Sex}
-                  >
-                    <option value="" disabled>
-                      Select Gender
-                    </option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                  </select>
-
-                  <input
-                    type="number"
-                    name="Age"
-                    placeholder="Age"
-                    onChange={handleChange}
-                    className="form-control mb-3"
-                    value={formData.Age}
-                  />
-                  <input
-                    type="number"
-                    name="Height"
-                    placeholder="Height (meters)"
-                    onChange={handleChange}
-                    className="form-control mb-3"
-                    value={formData.Height}
-                  />
-                  <input
-                    type="number"
-                    name="Weight"
-                    placeholder="Weight (kg)"
-                    onChange={handleChange}
-                    className="form-control mb-3"
-                    value={formData.Weight}
-                  />
-
-                  <select
-                    name="Level"
-                    onChange={handleChange}
-                    className="form-control mb-3"
-                    value={formData.Level}
-                  >
-                    <option value="" disabled>
-                      Select Level
-                    </option>
-                    <option value="Underweight">Underweight</option>
-                    <option value="Normal">Normal</option>
-                    <option value="Overweight">Overweight</option>
-                    <option value="Obese">Obese</option>
-                  </select>
-
-                  <select
-                    name="FitnessGoal"
-                    onChange={handleChange}
-                    className="form-control mb-3"
-                    value={formData.FitnessGoal}
-                  >
-                    <option value="" disabled>
-                      Select Goal
-                    </option>
-                    <option value="Weight Gain">Weight Gain</option>
-                    <option value="Weight Loss">Weight Loss</option>
-                  </select>
-
-                  <button
-                    onClick={handleSubmit}
-                    className="btn btn-primary w-100 mt-2 d-flex justify-content-center align-items-center"
-                  >
-                    Get Recommendation <FaPaperPlane className="ms-2" />
-                  </button>
-
-                  {/* Clear Button */}
-                  <button
-                    onClick={handleClear}
-                    className="btn btn-secondary w-100 mt-2"
-                  >
-                    Clear All
-                  </button>
-                </div>
-              </div>
+              {msg.text}
             </div>
-          </div>
+          ))}
+        </div>
+
+        <div className="form-group">
+          <select
+            name="Sex"
+            onChange={handleChange}
+            className="form-control mb-3"
+            value={formData.Sex}
+          >
+            <option value="" disabled>
+              Select Gender
+            </option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+
+          <input
+            type="text"
+            name="Age"
+            placeholder="Age"
+            className="form-control mb-3"
+            value={formData.Age}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (/^\d*$/.test(value)) {
+                handleChange(e);
+              }
+            }}
+          />
+
+          <input
+            type="text"
+            name="Height"
+            placeholder="Height (meters)"
+            className="form-control mb-3"
+            value={formData.Height}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (/^\d*\.?\d*$/.test(value)) {
+                handleChange(e);
+              }
+            }}
+          />
+
+          <input
+            type="text"
+            name="Weight"
+            placeholder="Weight (kg)"
+            className="form-control mb-3"
+            value={formData.Weight}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (/^\d*\.?\d*$/.test(value)) {
+                handleChange(e);
+              }
+            }}
+          />
+
+          <select
+            name="Level"
+            onChange={handleChange}
+            className="form-control mb-3"
+            value={formData.Level}
+          >
+            <option value="" disabled>
+              Select Level
+            </option>
+            <option value="Underweight">Underweight</option>
+            <option value="Normal">Normal</option>
+            <option value="Overweight">Overweight</option>
+            <option value="Obese">Obese</option>
+          </select>
+
+          <select
+            name="FitnessGoal"
+            onChange={handleChange}
+            className="form-control mb-3"
+            value={formData.FitnessGoal}
+          >
+            <option value="" disabled>
+              Select Goal
+            </option>
+            <option value="Weight Gain">Weight Gain</option>
+            <option value="Weight Loss">Weight Loss</option>
+          </select>
+
+          <button
+            onClick={handleSubmit}
+            className="btn btn-primary w-100 mt-2 d-flex justify-content-center align-items-center"
+            disabled={loading}
+          >
+            {loading ? (
+              <span className="d-flex align-items-center">
+                <ClipLoader color="#fff" size={20} className="me-2" />
+                Preparing result...
+              </span>
+            ) : (
+              <span>
+                Get Recommendation
+                <FaPaperPlane className="ms-2" />
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={handleClear}
+            className="btn btn-secondary w-100 mt-2"
+          >
+            Clear All
+          </button>
+
+          {recommendation && (
+            <button
+              onClick={() => setModalOpen(true)}
+              className="btn btn-success w-100 mt-2"
+            >
+              Show Recommendation
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Recommendation Modal */}
+      {isModalOpen && recommendation && (
+        <div className="modal-overlay">
+          <div className="gym-modal-content">
+            <button className="modal-close" onClick={() => setModalOpen(false)}>
+              &times;
+            </button>
+
+            <h3 className="modal-title">🏋️ Your Fitness Recommendation</h3>
+
+            <div className="modal-section">
+              <h4>Fitness Type:</h4>
+              <p className="fitness-type">{recommendation.fitnessType}</p>
+            </div>
+
+            <div className="modal-section">
+              <h4>💪 Recommended Exercises:</h4>
+              <ul className="exercise-list">
+                {recommendation.exercises.map((exercise, idx) => (
+                  <li key={idx}>{exercise.trim()}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="modal-section">
+              <h4>🍎 Dietary Suggestions:</h4>
+              <ul className="diet-list">
+                {recommendation.diet.map((item, idx) => (
+                  <li key={idx}>{item.trim()}</li>
+                ))}
+              </ul>
+            </div>
+
+            <button
+              className="modal-button"
+              onClick={() => setModalOpen(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

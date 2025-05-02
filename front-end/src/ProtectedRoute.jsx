@@ -20,7 +20,7 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
             .catch(() => setIsAuthenticated(false));
     }, []);
 
-    if (isAuthenticated === null) return <div>Loading...</div>;
+    if (isAuthenticated === null) return <div></div>;
     if (!isAuthenticated) return <Navigate to="/" />; 
     if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
         return <Navigate to="/welcome" />;
