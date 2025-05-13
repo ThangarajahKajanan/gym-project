@@ -75,39 +75,6 @@ const ManageSchedules = () => {
   };
   
 
-
-
-  // Replace the searchByDate function with this client-side version
-/*   const searchByDate = () => {
-    if (!searchDate) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'No Date Selected',
-        text: 'Please select a date to search',
-      });
-      return;
-    }
-
-    const searchDateObj = new Date(searchDate);
-    const searchDateString = searchDateObj.toDateString();
-
-    const filtered = schedules.filter(schedule => {
-      const scheduleDate = new Date(schedule.startDate).toDateString();
-      return scheduleDate === searchDateString;
-    });
-
-
-    setSearchMode(true);
-    setSchedules(filtered);
-
-    
-    Swal.fire({
-      icon: 'success',
-      title: 'Search Results',
-      text: `Found ${filtered.length} schedules for ${searchDateObj.toLocaleDateString()}`,
-    });
-  }; */
-
   const searchByDate = () => {
     if (!searchDate) {
       Swal.fire({
@@ -168,7 +135,6 @@ const ManageSchedules = () => {
   const viewDaySchedules = (daySchedules) => {
     setShowModal(true);
     setDaySchedules(daySchedules);
-    console.log("the day schedules are ", daySchedules);
   };
 
   const toggleStatus = async (_id) => {
@@ -360,12 +326,14 @@ const ManageSchedules = () => {
                     PDF Report
                   </button>
 
-                  <button
-                    onClick={() => navigate("/addschedule")}
-                    className="btn btn-success"
-                  >
-                    Create Schedule
-                  </button>
+
+                  {userRole === 'USER' && (                  
+                    <button
+                      onClick={() => navigate("/addschedule")}
+                      className="btn btn-success"
+                    >
+                      Create Schedule
+                    </button>)}
                 </div>
 
                 {/* RIGHT SIDE: Date + Search + Clear */}
@@ -423,10 +391,10 @@ const ManageSchedules = () => {
                     <th>Trainer</th>
                     <th>Recurrence</th>
                     <th>Status</th>
-                    <th>Schedules</th>
-                    <th>Edit</th>
+                    {userRole === 'USER' && (<th>Schedules</th>)}
+                    {userRole === 'USER' && (<th>Edit</th>)}
                     <th>Delete</th>
-                    <th>Toggle</th>
+                    {userRole === 'USER' && (<th>Toggle</th>)}
                   </tr>
                 </thead>
                 <tbody>
@@ -457,22 +425,36 @@ const ManageSchedules = () => {
                       <td>{schedule.trainer}</td>
                       <td>{schedule.recurrence}</td>
                       <td>{schedule.currentStatus ? "✅ Completed" : "⏳ Not Completed"}</td>
-                      <td>
-                        <button 
-                          onClick={() => viewDaySchedules(schedule.daySchedules)}
-                          className="btn btn-soft-secondary btn-sm"
-                        >
-                          Edit
-                        </button>
-                      </td>
-                      <td>
-                        <button
-                          onClick={() => handleEdit(schedule)}
-                          className="btn btn-blue btn-sm"
-                        >
-                          Edit
-                        </button>
-                      </td>
+
+
+                      {
+                          userRole === 'USER' && (
+                            <td>
+                            <button 
+                              onClick={() => viewDaySchedules(schedule.daySchedules)}
+                              className="btn btn-soft-secondary btn-sm"
+                            >
+                              Edit
+                            </button>
+                          </td>
+                          )
+                      }  
+
+                      {
+                          userRole === 'USER' && (
+                            <td>
+                            <button
+                              onClick={() => handleEdit(schedule)}
+                              className="btn btn-blue btn-sm"
+                            >
+                              Edit
+                            </button>
+                          </td>
+                          )
+                      }                      
+
+
+
                       <td>
                         <button 
                           onClick={() => handleDelete(schedule._id)}
@@ -481,14 +463,24 @@ const ManageSchedules = () => {
                           Delete
                         </button>
                       </td>
-                      <td>
-                        <button 
-                          onClick={() => toggleStatus(schedule._id)}
-                          className="btn btn-info btn-sm"
-                        >
-                          Toggle
-                        </button>
-                      </td>
+
+
+                      {
+                          userRole === 'USER' && (
+                            <td>
+                            <button 
+                              onClick={() => toggleStatus(schedule._id)}
+                              className="btn btn-info btn-sm"
+                            >
+                              Toggle
+                            </button>
+                          </td>
+                          )
+                      }
+
+
+
+
                     </tr>
                   ))}
                 </tbody>
@@ -500,7 +492,7 @@ const ManageSchedules = () => {
             <DaySchedulesTable 
               daySchedules={daySchedules}
               onClose={() => setShowModal(false)}
-              getAllSchedules = {getAllSchedules}
+              getSchedules = {getSchedules}
             />
           )}
           {showModal && <div className="modal-backdrop fade show"></div>}

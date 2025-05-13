@@ -168,8 +168,6 @@ const MembershipManagement = () => {
             columns: [1, 2, 3, 5, 7],
           },
         },
-        "print",
-        "copy",
         "colvis",
       ],
       columns: columns,

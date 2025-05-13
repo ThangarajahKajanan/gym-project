@@ -2,7 +2,7 @@ import axios from "axios";
 import React from "react";
 import Swal from "sweetalert2";
 
-const DaySchedulesTable = ({ daySchedules, onClose, getAllSchedules }) => {
+const DaySchedulesTable = ({ daySchedules, onClose, getSchedules }) => {
   // Convert the daySchedules object to an array of entries
   const scheduleEntries = Object.entries(daySchedules || {});
   const token = localStorage.getItem('token');
@@ -49,7 +49,7 @@ const DaySchedulesTable = ({ daySchedules, onClose, getAllSchedules }) => {
         `Schedule is now ${newStatus ? '✅ Completed' : '⏳ Not Completed'}`,
         'success'
       );
-      getAllSchedules();
+      getSchedules();
       onClose();
   
     } catch (error) {

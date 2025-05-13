@@ -71,18 +71,6 @@ const UserManagement = () => {
             columns: ":not(:last-child)",
           },
         },
-        {
-          extend: "print",
-          exportOptions: {
-            columns: ":not(:last-child)",
-          },
-        },
-        {
-          extend: "copy",
-          exportOptions: {
-            columns: ":not(:last-child)",
-          },
-        },
         "colvis" // this one is for column visibility, no need exportOptions
       ],
       

@@ -1,46 +1,196 @@
+/* Background and Base Styles */
 .schedule-form-container {
-    background-color: #f8f9fa;
+    background: url('../images/bg2.jpg');
+    background-size: cover;
     min-height: 100vh;
+    padding: 2rem 0;
   }
   
-  .card {
-    border: none;
-    border-radius: 0.5rem;
+  /* Glassmorphism Card */
+  .schedule-form-container .card {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    overflow: hidden;
   }
   
-  .card-header {
-    border-radius: 0.5rem 0.5rem 0 0 !important;
-    background: #e0dddd;
+  .schedule-form-container .card-header {
+    background: rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 1.5rem;
+    color: rgb(255, 255, 255);
   }
   
-  .schedule-days-container {
-    background-color: #f8f9fa;
-    border-radius: 0.5rem;
+
+  .schedule-form-container .form-control,
+  .schedule-form-container .form-select {
+
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    color: rgb(255, 255, 255);
+  }
+  
+  .schedule-form-container .form-control:focus,
+  .schedule-form-container .form-select:focus {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: none;
+    border-color: rgba(255, 255, 255, 0.5); 
+    outline: none;
+
+  }
+
+  .schedule-form-container .form-select option {
+    color: black;
+  }
+  
+  
+
+  .dropdown-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .dropdown-group .form-group {
+    flex: 1;
+    min-width: 200px;
+  }
+  
+
+  .recurrence-display {
+    margin-top: 1rem;
     padding: 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  .recurrence-display h5 {
+    margin-bottom: 0.5rem;
+    color: white;
+  }
+  
+  /* Day Selection Animation */
+  .day-selection {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+  
+  .day-pill {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+  }
+  
+  .day-pill.active {
+    background: rgba(0, 123, 255, 0.7);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Schedule Day Cards */
+  .schedule-days-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
   
   .schedule-day-card {
-    background-color: white;
-    border: 1px solid #dee2e6;
-    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
   }
   
   .schedule-day-card.active {
-    border-color: #0d6efd;
-    background-color: rgba(13, 110, 253, 0.05);
+    background: rgba(200, 230, 255, 0.397);
+    border: 1px solid rgba(0, 123, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
   }
-  
+
   .form-check-input:checked {
     background-color: #0d6efd;
     border-color: #0d6efd;
   }
   
-  .btn-primary {
-    padding: 0.5rem 2rem;
+  
+  /* Buttons */
+/*   .btn {
+    border-radius: 8px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+  }
+   */
+/*   .btn-success {
+    background: rgba(40, 167, 69, 0.9);
   }
   
+  .btn-success:hover {
+    background: rgba(33, 136, 56, 0.9);
+    transform: translateY(-2px);
+  }
+  
+  .btn-secondary {
+    background: rgba(108, 117, 125, 0.9);
+  }
+  
+  .btn-secondary:hover {
+    background: rgba(84, 91, 98, 0.9);
+    transform: translateY(-2px);
+  }
+  
+  .btn-danger {
+    background: rgba(220, 53, 69, 0.9);
+  }
+  
+  .btn-danger:hover {
+    background: rgba(185, 28, 44, 0.9);
+    transform: translateY(-2px);
+  } */
+  
+  .invalid-feedback {
+    color: #ff6b6b;
+    font-weight: 500;
+
+  }
+  
+  .text-danger {
+    color: #ff6b6b !important;
+  }
+  
+  /* Responsive Adjustments */
   @media (max-width: 768px) {
-    .schedule-day-card {
-      padding: 1rem;
+    .dropdown-group .form-group {
+      min-width: 100%;
+    }
+    
+    .day-selection {
+      justify-content: center;
+    }
+    
+    .schedule-day-card .d-flex {
+      flex-direction: column;
+      align-items: flex-start !important;
+    }
+    
+    .schedule-day-card .gap-3 {
+      gap: 1rem !important;
+    }
+    
+    .form-check {
+      padding-left: 2.5em;
     }
   }

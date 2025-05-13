@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+/* import React, { useState, useEffect } from "react";
 
 const ScheduleDay = ({ day, recurrence, onScheduleChange, schedule, isEditMode }) => {
   const [isActive, setIsActive] = useState(schedule.status || false);
@@ -8,7 +8,6 @@ const ScheduleDay = ({ day, recurrence, onScheduleChange, schedule, isEditMode }
   });
   const [timeError, setTimeError] = useState("");
 
-  // Initialize based on schedule data when component mounts
   useEffect(() => {
     if (isEditMode) {
       setIsActive(schedule.status || false);
@@ -17,9 +16,8 @@ const ScheduleDay = ({ day, recurrence, onScheduleChange, schedule, isEditMode }
         endTime: schedule.endTime || ""
       });
     }
-  }, [isEditMode]); // Only run when isEditMode changes
+  }, [isEditMode]);
 
-  // Handle recurrence changes (only for new schedules)
   useEffect(() => {
     if (!isEditMode) {
       let active = false;
@@ -35,7 +33,6 @@ const ScheduleDay = ({ day, recurrence, onScheduleChange, schedule, isEditMode }
           break;
         case "custom":
         default:
-          // Don't change active state for custom in edit mode
       }
       if (active !== isActive) {
         setIsActive(active);
@@ -43,7 +40,6 @@ const ScheduleDay = ({ day, recurrence, onScheduleChange, schedule, isEditMode }
     }
   }, [recurrence, day.id, isEditMode]);
 
-  // Handle time validation (without triggering parent updates)
   useEffect(() => {
     if (isActive && times.startTime && times.endTime) {
       if (times.startTime >= times.endTime) {
@@ -62,7 +58,6 @@ const ScheduleDay = ({ day, recurrence, onScheduleChange, schedule, isEditMode }
     };
     setTimes(newTimes);
     
-    // Only call onScheduleChange if times are valid
     if (isActive && newTimes.startTime && newTimes.endTime && newTimes.startTime < newTimes.endTime) {
       onScheduleChange(day.id, {
         ...newTimes,
@@ -83,7 +78,6 @@ const ScheduleDay = ({ day, recurrence, onScheduleChange, schedule, isEditMode }
         status: false
       });
     } else {
-      // When activating, set default times if empty
       const newTimes = {
         startTime: times.startTime || "08:00",
         endTime: times.endTime || "09:00"
@@ -108,12 +102,11 @@ const ScheduleDay = ({ day, recurrence, onScheduleChange, schedule, isEditMode }
               checked={isActive}
               onChange={handleToggle}
               id={`switch-${day.id}`}
-              disabled={recurrence !== "custom"}
             />
           </div>
           <label
             htmlFor={`switch-${day.id}`}
-            className={`form-check-label mb-0 ${isActive ? "fw-bold" : "text-muted"}`}
+            className={`form-check-label mb-0 ${isActive ? "fw-bold text-primary" : "text-muted"}`}
           >
             {day.label}
           </label>
@@ -122,7 +115,7 @@ const ScheduleDay = ({ day, recurrence, onScheduleChange, schedule, isEditMode }
         {isActive && (
           <div className="d-flex flex-column flex-md-row gap-3">
             <div className="d-flex align-items-center gap-2">
-              <label className="small">From</label>
+              <label className="small ">From</label>
               <input
                 type="time"
                 name="startTime"
@@ -132,7 +125,7 @@ const ScheduleDay = ({ day, recurrence, onScheduleChange, schedule, isEditMode }
               />
             </div>
             <div className="d-flex align-items-center gap-2">
-              <label className="small">To</label>
+              <label className="small text-muted">To</label>
               <input
                 type="time"
                 name="endTime"
@@ -153,4 +146,4 @@ const ScheduleDay = ({ day, recurrence, onScheduleChange, schedule, isEditMode }
   );
 };
 
-export default ScheduleDay;
+export default ScheduleDay; */

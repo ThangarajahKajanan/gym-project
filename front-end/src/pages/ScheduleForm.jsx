@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import ScheduleDay from "./ScheduleDay";
 import Swal from "sweetalert2";
 import "../CSS/schedule-form.css";
 import axios from "axios";
@@ -10,24 +9,10 @@ const ScheduleForm = () => {
   const location = useLocation();
   const { editData } = location.state || {};
   const [isLoading, setIsLoading] = useState(false);
-  const [editSchedules, setEditSchedules] = useState({});
   const [membershipNames, setMembershipNames] = useState([]);
   const [trainers, setTrainer] = useState([]);
-
   const [isUpdated, setIsUpdated] = useState(false);
   const token = localStorage.getItem('token');
-
-  const [formData, setFormData] = useState({
-    startDate: "",
-    endDate: "",
-    classType: "",
-    membershipName: "",
-    trainer: "",
-    recurrence: "custom",
-    schedules: {}
-  });
-
-  const [errors, setErrors] = useState({});
 
   const daysOfWeek = [
     { id: "sun", label: "Sunday" },
@@ -38,6 +23,18 @@ const ScheduleForm = () => {
     { id: "fri", label: "Friday" },
     { id: "sat", label: "Saturday" },
   ];
+
+  const [formData, setFormData] = useState({
+    startDate: "",
+    endDate: "",
+    classType: "",
+    membershipName: "",
+    trainer: "",
+    recurrence: "",
+    schedules: {}
+  });
+
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     getAllMembershipNames();
@@ -51,17 +48,12 @@ const ScheduleForm = () => {
           'Authorization': `Bearer ${token}`  
         }
       });
-      
-      // Assuming response.data.data contains the actual names array
       setMembershipNames(response.data.data); 
-      
-      console.log("The membership names are:", response.data.data);
     } catch (error) {
       console.error("Error fetching membership names:", error);
     }
   };
   
-
   const getAllTrainers = async () => {
     try {
       const response = await axios.get('http://localhost:5100/api/getTrainerNames', {
@@ -69,26 +61,17 @@ const ScheduleForm = () => {
           'Authorization': `Bearer ${token}`  
         }
       });
-      
-      // Extract trainer names from the response data
       const trainerNames = response.data.data.map((trainer) => trainer.trainerName); 
-      
-      setTrainer(trainerNames); // Set only the names as an array
-      
-      console.log("The Trainers names are:", trainerNames);
+      setTrainer(trainerNames);
     } catch (error) {
       console.error("Error fetching trainers names:", error);
     }
   };
-  
-
 
   useEffect(() => {
     if (editData) {
-  
       setIsUpdated(true);
       
-      // Initialize schedules object with all days
       const initialSchedules = {};
       daysOfWeek.forEach(day => {
         initialSchedules[day.id] = {
@@ -98,7 +81,6 @@ const ScheduleForm = () => {
         };
       });
   
-      // Merge with editData's daySchedules if they exist
       if (editData.daySchedules) {
         Object.keys(editData.daySchedules).forEach(day => {
           if (editData.daySchedules[day]) {
@@ -131,13 +113,74 @@ const ScheduleForm = () => {
     }));
   };
 
-  const handleScheduleChange = (day, time) => {
+  const handleRecurrenceChange = (e) => {
+    const value = e.target.value;
+    const newSchedules = {...formData.schedules};
+    
+    daysOfWeek.forEach(day => {
+      let shouldBeActive = false;
+      
+      switch(value) {
+        case "weekdays":
+          shouldBeActive = ["mon", "tue", "wed", "thu", "fri"].includes(day.id);
+          break;
+        case "weekends":
+          shouldBeActive = ["sat", "sun"].includes(day.id);
+          break;
+        case "daily":
+          shouldBeActive = true;
+          break;
+        case "custom":
+          shouldBeActive = newSchedules[day.id]?.status || false;
+          break;
+        default:
+          shouldBeActive = false;
+      }
+      
+      newSchedules[day.id] = {
+        ...(newSchedules[day.id] || {}),
+        status: shouldBeActive,
+        startTime: newSchedules[day.id]?.startTime || "08:00",
+        endTime: newSchedules[day.id]?.endTime || "09:00"
+      };
+    });
+    
     setFormData(prev => ({
       ...prev,
-      schedules: {
-        ...prev.schedules,
-        [day]: time
-      }
+      recurrence: value,
+      schedules: newSchedules
+    }));
+  };
+
+  const handleScheduleToggle = (dayId) => {
+    const newSchedules = {...formData.schedules};
+    const newStatus = !newSchedules[dayId]?.status;
+    
+    newSchedules[dayId] = {
+      ...(newSchedules[dayId] || {}),
+      status: newStatus,
+      startTime: newSchedules[dayId]?.startTime || "08:00",
+      endTime: newSchedules[dayId]?.endTime || "09:00"
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      schedules: newSchedules
+    }));
+  };
+
+  const handleTimeChange = (dayId, field, value) => {
+    const newSchedules = {...formData.schedules};
+    
+    newSchedules[dayId] = {
+      ...(newSchedules[dayId] || {}),
+      [field]: value,
+      status: true
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      schedules: newSchedules
     }));
   };
 
@@ -148,7 +191,7 @@ const ScheduleForm = () => {
       classType: "",
       membershipName: "",
       trainer: "",
-      recurrence: "weekdays",
+      recurrence: "",
       schedules: {}
     });
     setErrors({});
@@ -156,20 +199,20 @@ const ScheduleForm = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    const { startDate, endDate, classType, membershipName,trainer, schedules } = formData;
+    const { startDate, endDate, classType, membershipName, trainer, schedules } = formData;
 
     if (!startDate) newErrors.startDate = "Start date is required";
     if (!endDate) newErrors.endDate = "End date is required";
     if (!classType) newErrors.classType = "Class type is required"; 
-    if (!membershipName) newErrors.membershipName = "Membership Name  is required"; 
-    if (!trainer) newErrors.trainer = "Trainer Name  is required"; 
+    if (!membershipName) newErrors.membershipName = "Membership Name is required"; 
+    if (!trainer) newErrors.trainer = "Trainer Name is required"; 
 
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
       newErrors.dateRange = "End date must be after start date";
     }
 
     const hasValidSchedule = Object.values(schedules).some(
-      s => s.startTime && s.endTime && s.startTime < s.endTime
+      s => s.status && s.startTime && s.endTime && s.startTime < s.endTime
     );
     
     if (!hasValidSchedule) {
@@ -179,59 +222,30 @@ const ScheduleForm = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-/*   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-  
-    if (!validateForm()) {
-      setIsLoading(false);
-      return;
-    }
-  
-    const { startDate, endDate, classType, recurrence, schedules } = formData;
-  
-    const submissionData = {
-      startDate,
-      endDate,
-      classType,
-      recurrence,
-      schedules: schedules,
-    };
-  
-    console.log("Submitting:", submissionData);
-
-    try {
-      const response = await axios.post(`http://localhost:5100/api/create`, submissionData);
-      Swal.fire({
-        icon: "success",
-        title: "Success!",
-        text: "Schedule created successfully!",
-        confirmButtonColor: "#3085d6",
-      });
-      console.log("response", response.data)
-      navigate('/manageschedules')
-    } catch (error) {
-      console.log("Error:", error);
-    }
-
-  }; */
   
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-  
+
+    if (!formData.recurrence) {
+      Swal.fire({
+        icon: "error",
+        title: "Required!",
+        text: "Please select the Recurrence Pattern",
+        confirmButtonColor: "#3085d6",
+        background: 'rgba(255, 255, 255, 0.9)',
+      });
+      setIsLoading(false);
+      return;
+    }
+
     if (!validateForm()) {
       setIsLoading(false);
       return;
     }
   
     const { startDate, endDate, classType, membershipName, trainer, recurrence, schedules } = formData;
-
-    console.log("the membershipName ", membershipName)
-    console.log("the trainer ", trainer)
   
-    // Filter out only active schedules
     const activeSchedules = Object.keys(schedules).reduce((acc, day) => {
       if (schedules[day].status) {
         acc[day] = {
@@ -241,6 +255,8 @@ const ScheduleForm = () => {
       }
       return acc;
     }, {});
+
+
   
     const submissionData = {
       startDate,
@@ -252,9 +268,6 @@ const ScheduleForm = () => {
       schedules: activeSchedules
     };
     
-
-    console.log("sending data", submissionData)
-  
     try {
       const endpoint = isUpdated 
         ? `http://localhost:5100/api/updateSchedule/${editData._id}`
@@ -273,6 +286,7 @@ const ScheduleForm = () => {
         title: "Success!",
         text: isUpdated ? "Schedule updated successfully!" : "Schedule created successfully!",
         confirmButtonColor: "#3085d6",
+        background: 'rgba(255, 255, 255, 0.9)',
       });
       
       navigate('/manageschedules');
@@ -284,9 +298,25 @@ const ScheduleForm = () => {
         title: "Error",
         text: `An error occurred while ${isUpdated ? "updating" : "creating"} schedule`,
         confirmButtonColor: "#3085d6",
+        background: 'rgba(255, 255, 255, 0.9)'
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const getFilteredDays = () => {
+    switch(formData.recurrence) {
+      case "weekdays":
+        return daysOfWeek.filter(day => ["mon", "tue", "wed", "thu", "fri"].includes(day.id));
+      case "weekends":
+        return daysOfWeek.filter(day => ["sat", "sun"].includes(day.id));
+      case "daily":
+        return daysOfWeek;
+      case "custom":
+        return daysOfWeek;
+      default:
+        return [];
     }
   };
 
@@ -294,7 +324,7 @@ const ScheduleForm = () => {
     <div className="schedule-form-container">
       <div className="container py-3">
         <div className="card shadow-lg">
-          <div className="card-header text-white">
+          <div className="card-header">
             <h4 className="mb-0">{isUpdated ? "Edit Schedule" : "Create New Schedule"}</h4>
           </div>
 
@@ -302,10 +332,10 @@ const ScheduleForm = () => {
             <form onSubmit={handleSubmit}>
               {/* Date Range Section */}
               <div className="mb-4">
-                <h3 className="h5 mb-3">Date Range</h3>
+                <h3 className="h5 mb-3 text-white">Date Range</h3>
                 <div className="row g-3">
                   <div className="col-md-6">
-                    <label htmlFor="startDate" className="form-label">
+                    <label htmlFor="startDate" className="form-label text-white">
                       Start Date <span className="text-danger">*</span>
                     </label>
                     <input
@@ -323,7 +353,7 @@ const ScheduleForm = () => {
                   </div>
 
                   <div className="col-md-6">
-                    <label htmlFor="endDate" className="form-label">
+                    <label htmlFor="endDate" className="form-label text-white">
                       End Date <span className="text-danger">*</span>
                     </label>
                     <input
@@ -345,124 +375,213 @@ const ScheduleForm = () => {
                 )}
               </div>
 
-              {/* Class type */}
-              <div className="mb-4">
-                <h3 className="h5 mb-3">Class Type</h3>
-                <select
-                  id="classType"
-                  name="classType"
-                  value={formData.classType}
-                  onChange={handleInputChange}
-                  className={`form-select ${errors.classType ? "is-invalid" : ""}`}
-                >
-                  <option value="">Select Class Type</option>
-                  <option value="Yoga">Yoga</option>
-                  <option value="Strength">Strength</option>
-                  <option value="Training">Training</option>
-                  <option value="Cardio">Cardio</option>
-                </select>
-                {errors.classType && (
-                  <div className="invalid-feedback">{errors.classType}</div>
-                )}
+              {/* Grouped Dropdowns */}
+              <div className="dropdown-group">
+                <div className="form-group">
+                  <label htmlFor="classType" className="form-label text-white">
+                    Class Type <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    id="classType"
+                    name="classType"
+                    value={formData.classType}
+                    onChange={handleInputChange}
+                    className={`form-select ${errors.classType ? "is-invalid" : ""}`}
+                  >
+                    <option value="">Select Class Type</option>
+                    <option value="Yoga">Yoga</option>
+                    <option value="Strength">Strength</option>
+                    <option value="Training">Training</option>
+                    <option value="Cardio">Cardio</option>
+                  </select>
+                  {errors.classType && (
+                    <div className="invalid-feedback">{errors.classType}</div>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="membershipName" className="form-label text-white">
+                    Membership <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    id="membershipName"
+                    name="membershipName"
+                    onChange={handleInputChange}
+                    value={formData.membershipName}
+                    className={`form-select ${errors.membershipName ? "is-invalid" : ""}`}
+                  >
+                    <option value="">Select Membership</option>
+                    {(Array.isArray(membershipNames) ? membershipNames : []).map((name, idx) => (
+                      <option key={idx} value={name}>{name}</option>
+                    ))}
+                  </select>
+                  {errors.membershipName && (
+                    <div className="invalid-feedback">{errors.membershipName}</div>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="trainer" className="form-label text-white">
+                    Trainer <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    id="trainer"
+                    name="trainer"
+                    onChange={handleInputChange}
+                    value={formData.trainer}
+                    className={`form-select ${errors.trainer ? "is-invalid" : ""}`}
+                  >
+                    <option value="">Select Trainer</option>
+                    {trainers?.map((name, idx) => (
+                      <option key={idx} value={name}>{name}</option>
+                    ))}
+                  </select>
+                  {errors.trainer && (
+                    <div className="invalid-feedback">{errors.trainer}</div>
+                  )}
+                </div>
               </div>
-
-              <div className="mb-4">
-                <h3 className="h5 mb-3">Select Membership</h3>
-                <select
-                  id="membershipName"
-                  name="membershipName"
-                  onChange={handleInputChange}
-                  value={formData.membershipName}
-                  className="form-select"
-                >
-                  <option value="">Select Membership</option>
-                  {(Array.isArray(membershipNames) ? membershipNames : []).map((name, idx) => (
-                    <option key={idx} value={name}>{name}</option>
-                  ))}
-                </select>
-                {errors.membershipName && (
-                  <div membershipName="invalid-feedback">{errors.membershipName}</div>
-                )}
-              </div>
-
-
-
-               
-            <div className="mb-4">
-              <h3 className="h5 mb-3">Trainer</h3>
-              <select
-                id="trainer"
-                name="trainer"
-                onChange={handleInputChange}
-                value={formData.trainer}
-                className="form-select"
-              >
-                <option value="">Select Trainer</option>
-                {trainers?.map((name, idx) => (
-                  <option key={idx} value={name}>{name}</option>
-                ))}
-              </select>
-              {errors.trainer && (
-                <div trainer="invalid-feedback">{errors.trainer}</div>
-              )}
-            </div>
-
- 
-
-              
 
               {/* Recurrence Pattern */}
               <div className="mb-4">
-                <h3 className="h5 mb-3">Recurrence Pattern</h3>
+                <h3 className="h5 mb-3 text-white">Recurrence Pattern</h3>
                 <select
                   id="recurrence"
                   name="recurrence"
                   value={formData.recurrence}
-                  onChange={handleInputChange}
+                  onChange={handleRecurrenceChange}
                   className="form-select"
                 >
+                  <option value="">Select One</option>
                   <option value="weekdays">Weekdays (Monday-Friday)</option>
                   <option value="weekends">Weekends (Saturday-Sunday)</option>
                   <option value="daily">Daily</option>
                   <option value="custom">Custom Days</option>
                 </select>
+
+                {
+                  formData.recurrence && 
+                  <div className="recurrence-display mt-3">
+                  <h5>Selected Days:</h5>
+                  <div className="day-selection">
+                    {getFilteredDays().map(day => (
+                      <span 
+                        key={day.id} 
+                        className={`day-pill ${
+                          formData.schedules[day.id]?.status ? "active" : ""
+                        }`}
+                      >
+                        {day.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                }
+
+
               </div>
 
               {/* Daily Schedules */}
-              <div className="mb-4">
+              {
+                formData.recurrence && 
+                <div className="mb-4">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h3 className="h5 mb-0">Daily Schedules</h3>
-                  <span className="text-muted small">Select days and set times</span>
+                  <h3 className="h5 mb-0 text-white">Daily Schedules</h3>
+                  {formData.recurrence === "custom" && (
+                    <span className="text-white small">Toggle days and set times</span>
+                  )}
                 </div>
 
                 {errors.schedules && (
-                  <div className="alert alert-danger">{errors.schedules}</div>
+                  <div className="alert alert-danger"  style={{
+                    backgroundColor: 'white',
+                    color: '#721c24',
+                    borderColor: '#f5c6cb'
+                  }}>{errors.schedules}</div>
                 )}
 
                 <div className="schedule-days-container">
-                  {daysOfWeek.map(day => (
-                    <ScheduleDay
-                      key={day.id}
-                      day={day}
-                      recurrence={formData.recurrence}
-                      onScheduleChange={handleScheduleChange}
-                      schedule={formData.schedules[day.id] || {}}
-                      editSchedules = {editSchedules}
-                      isEditMode={isUpdated}
-                    />
+                  {getFilteredDays().map(day => (
+                    <div 
+                      key={day.id} 
+                      className={`schedule-day-card mb-3 p-3 rounded ${
+                        formData.schedules[day.id]?.status ? "active" : ""
+                      }`}
+                    >
+                      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div className="d-flex align-items-center gap-3">
+                          <div className="form-check form-switch">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              role="switch"
+                              checked={formData.schedules[day.id]?.status || false}
+                              onChange={() => handleScheduleToggle(day.id)}
+                              id={`switch-${day.id}`}
+                              disabled={formData.recurrence !== "custom"}
+                            />
+                          </div>
+                          <label
+                            htmlFor={`switch-${day.id}`}
+                            className={`form-check-label mb-0 ${
+                              formData.schedules[day.id]?.status ? "fw-bold text-primary" : "text-muted"
+                            }`}
+                          >
+                            {day.label}
+                          </label>
+                        </div>
+
+                        {formData.schedules[day.id]?.status && (
+                          <div className="d-flex flex-column flex-md-row gap-3">
+                            <div className="d-flex align-items-center gap-2">
+                              <label className="small " style={{ color: '#ffffff' }}>From</label>
+                              <input
+                                type="time"
+                                value={formData.schedules[day.id]?.startTime || "08:00"}
+                                onChange={(e) => handleTimeChange(day.id, "startTime", e.target.value)}
+                                className="form-control form-control-sm"
+                              />
+                            </div>
+                            <div className="d-flex align-items-center gap-2">
+                              <label className="small " style={{ color: '#ffffff' }}>To</label>
+                              <input
+                                type="time"
+                                value={formData.schedules[day.id]?.endTime || "09:00"}
+                                onChange={(e) => handleTimeChange(day.id, "endTime", e.target.value)}
+                                min={formData.schedules[day.id]?.startTime || "08:00"}
+                                className="form-control form-control-sm"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   ))}
                 </div>
-              </div>
+                </div>
+
+              }
 
               {/* Form Actions */}
               <div className="text-center pt-3">
-                <button type="submit" className="btn btn-success me-4">
-                  {isUpdated ? "Update Schedule" : "Save Schedule"}
+                <button 
+                  type="submit" 
+                  className="btn btn-success me-4"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  ) : isUpdated ? (
+                    "Update Schedule"
+                  ) : (
+                    "Save Schedule"
+                  )}
                 </button>
                 <button
                   type="button"
                   onClick={handleClear}
                   className="btn btn-secondary me-4"
+                  disabled={isLoading}
                 >
                   Clear
                 </button>
@@ -470,6 +589,7 @@ const ScheduleForm = () => {
                   type="button"
                   onClick={() => { navigate('/manageschedules') }}
                   className="btn btn-danger"
+                  disabled={isLoading}
                 >
                   Close
                 </button>

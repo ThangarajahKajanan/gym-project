@@ -65,14 +65,6 @@ const TrainerManagement = () => {
           extend: "excel",
           exportOptions: { columns: ":not(:nth-last-child(-n+2))" }
         },
-        {
-          extend: "print",
-          exportOptions: { columns: ":not(:nth-last-child(-n+2))" }
-        },
-        {
-          extend: "copy",
-          exportOptions: { columns: ":not(:nth-last-child(-n+2))" }
-        },
         "colvis"
       ],
       
